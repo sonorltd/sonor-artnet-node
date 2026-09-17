@@ -1,0 +1,5 @@
+.DS_Store
+sonor-artnet-node/build/*.elf
+sonor-artnet-node/build/*.eep
+sonor-artnet-node/build/*.bin
+sonor-artnet-node/build/*with_bootloader*

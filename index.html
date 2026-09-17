@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SONOR Art-Net Node</title>
+<meta name="description" content="Ethernet → DMX512 Art-Net node on an Arduino Nano + ENC28J60. Firmware, wiring, flashing and config notes.">
+<style>
+  :root{--bg:#111418;--panel:#1a1f25;--line:#2b323a;--fg:#e6e8eb;--mute:#8a94a0;--acc:#4bb9d3;--ok:#2e7d4f}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:32px 20px 64px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);font-weight:700}
+  h1{font-size:30px;margin:6px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--mute)}
+  h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:32px 0 10px}
+  p{margin:8px 0}
+  a{color:var(--acc)}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .btn{display:inline-block;padding:10px 16px;border-radius:8px;background:var(--acc);color:#0b1014;font-weight:700;text-decoration:none}
+  .btn.ghost{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:12.5px;overflow:auto;line-height:1.45}
+  code{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card b{display:block;margin-bottom:4px}
+  .card span{color:var(--mute);font-size:13px}
+  .note{border-left:3px solid var(--acc);padding:8px 14px;background:var(--panel);border-radius:0 8px 8px 0;margin:12px 0}
+  footer{margin-top:48px;color:var(--mute);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">SONOR · Studio</div>
+  <h1>Art-Net Node</h1>
+  <div class="sub">Ethernet → DMX512 on an Arduino Nano + ENC28J60 shield. A drop-in stand-in for an Enttec ODE when the old software won't play. Firmware v0.2.0.</div>
+  <div class="btns">
+    <a class="btn" href="sonor-artnet-node/build/sonor-artnet-node.ino.hex" download>Download .hex</a>
+    <a class="btn ghost" href="https://github.com/sonorltd/sonor-artnet-node/archive/refs/heads/main.zip">Sketch + libraries (zip)</a>
+    <a class="btn ghost" href="https://github.com/sonorltd/sonor-artnet-node">GitHub repo</a>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card"><b>Discoverable</b><span>Answers ArtPoll as “SONOR Node” — shows up in QLC+, DMX-Workshop, Resolume, MA, Control4 Art-Net drivers.</span></div>
+  <div class="card"><b>One universe out</b><span>ArtDmx → 512 channels of continuous DMX on the Nano's TX pin via a MAX485. Holds last look on loss of source.</span></div>
+  <div class="card"><b>Config page on the node</b><span>Browse to its IP to set Net / Sub-Net / Universe, DHCP or static IP. Wiring + flashing notes are on the page too.</span></div>
+  <div class="card"><b>Zero library installs</b><span>EthernetENC (patched) and DMXSerial are bundled inside the sketch. Open the .ino, pick the board, Upload.</span></div>
+</div>
+
+<h2>Parts</h2>
+<table>
+  <tr><th>Part</th><th>Notes</th></tr>
+  <tr><td>Arduino Nano (ATmega328P)</td><td>Clone or genuine, old or new bootloader.</td></tr>
+  <tr><td>Nano Ethernet shield, ENC28J60</td><td>CS on D10 on nearly all of them (set <code>ETH_CS_PIN 8</code> if yours differs).</td></tr>
+  <tr><td>MAX485 / SN75176 / MAX3485 breakout</td><td>Any 5 V RS-485 module with A / B / DI / DE / RE pins.</td></tr>
+  <tr><td>XLR female, 3- or 5-pin</td><td>DMX out.</td></tr>
+  <tr><td>LED + 330 Ω (optional)</td><td>Activity blink on D3.</td></tr>
+</table>
+
+<h2>Wiring</h2>
+<pre>Arduino Nano             MAX485 module              XLR (DMX out, female)
+────────────             ─────────────              ─────────────────────
+5V   ───────────────►  VCC
+GND  ───────────────►  GND  ──────────────────────► pin 1  (shield / GND)
+D1 (TX) ────────────►  DI
+D2   ───────────────►  DE  ┐ (tie DE and RE together)
+                       RE  ┘
+                       A   ──────────────────────► pin 3  (Data +)
+                       B   ──────────────────────► pin 2  (Data −)
+                       RO  (leave unconnected)
+D3   ──► 330Ω ──► LED ──► GND        (optional activity LED)</pre>
+<div class="note">The shield owns D10–D13 (SPI). The on-board D13 LED flickers with SPI traffic — normal. If you'd rather not use D2, tie DE+RE to 5 V and set <code>DMX_DE_PIN -1</code>.</div>
+
+<h2>Flashing</h2>
+<p><b>Arduino IDE:</b> open <code>sonor-artnet-node.ino</code> → Board <b>Arduino Nano</b> → Processor <b>ATmega328P (Old Bootloader)</b> for clones (plain <b>ATmega328P</b> for a recent genuine one) → Port → Upload. Nothing to install: the libraries are in <code>src/</code>. Don't also install EthernetENC from Library Manager — the stock copy won't link with DMXSerial.</p>
+<p><b>No IDE, just the hex:</b></p>
+<pre># old-bootloader clone (most Nanos)
+avrdude -c arduino -p atmega328p -P /dev/cu.usbserial-XXXX -b 57600  -D -U flash:w:sonor-artnet-node.ino.hex:i
+# new bootloader (genuine Nano since 2018)
+avrdude -c arduino -p atmega328p -P /dev/cu.usbserial-XXXX -b 115200 -D -U flash:w:sonor-artnet-node.ino.hex:i</pre>
+
+<h2>Config page</h2>
+<p>Plug in Ethernet, wait ~6 s, browse to the node's IP. On a network with DHCP it takes a lease (find it in the router's lease table under MAC <code>02:53:4F:4E:4F:52</code>, or via any Art-Net tool's node discovery). With no DHCP it sits on <code>2.0.0.10 / 255.0.0.0</code> like an ODE out of the box — set your laptop to <code>2.0.0.1 / 255.0.0.0</code>.</p>
+<table>
+  <tr><th>Section</th><th>What it does</th></tr>
+  <tr><td>Art-Net</td><td>Net 0–127, Sub-Net 0–15, Universe 0–15. Applies immediately on Save. Port-Address 0/0/0 is “Universe 1” in most consoles, Universe 0 in QLC+ and MA.</td></tr>
+  <tr><td>Network</td><td>DHCP (with static fallback) or Static; IP / mask / gateway. Applies after a power-cycle.</td></tr>
+  <tr><td>Status</td><td>Current IP, MAC, port address, DMX state.</td></tr>
+  <tr><td>Factory reset</td><td>Set Net 127 / Sub-Net 15 / Universe 15 and Save — or just re-flash.</td></tr>
+</table>
+
+<h2>Quick test on site</h2>
+<p>D3 LED on during boot, off once the network is up, then toggles on every Art-Net frame received for the configured universe. Not toggling → packets aren't reaching it (universe or subnet). Toggling but nothing lights → DMX wiring or polarity (swap A/B).</p>
+
+<h2>Limits</h2>
+<p>Single universe — a 328P has 2 KB of RAM. Flash ≈ 28.7 KB / 30 KB, RAM ≈ 1.4 KB / 2 KB. Refresh follows the source; the DMX line runs continuously at ~44 Hz regardless.</p>
+
+<footer>SONOR Ltd · STUDIO side-project · Bundled: EthernetENC 2.0.5 (Juraj Andrassy, patched) · DMXSerial 1.5.3 (Matthias Hertel)</footer>
+</div>
+</body>
+</html>
