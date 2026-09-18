@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 /**
  * \addtogroup uip
  * @{
@@ -420,3 +423,5 @@ uip_arp_out(void)
 
 /** @} */
 /** @} */
+
+#endif // SONOR board guard

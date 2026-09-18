@@ -1,30 +1,39 @@
-# STUDIO - ArtNet Node (v0.2.0)
+# STUDIO - ArtNet Node (v0.3.0)
 
-> Current version: 0.2.0 · Repo: `sonor-artnet-node` · Pages: https://sonorltd.github.io/sonor-artnet-node/ (docs + hex download).
-> Type: side-project / firmware (STUDIO class). Arduino Nano (ATmega328P) + ENC28J60 shield + MAX485 → one universe of DMX out.
+> Current version: 0.3.0 · Repo: `sonor-artnet-node` · Pages: https://sonorltd.github.io/sonor-artnet-node/ (board picker, browser flashing, wiring schematics).
+> Type: side-project / firmware (STUDIO class). Six board variants → one universe of DMX out. Enttec ODE stand-in.
 
-Ethernet → DMX512 node that stands in for an Enttec ODE: ArtPoll/ArtPollReply discovery, ArtDmx on UDP 6454,
-DMX on the hardware UART via DMXSerial, and a self-hosted config page (http://<node-ip>/) for Net/Sub-Net/Universe
-and DHCP/static IP, persisted in EEPROM. **Read `README.md` first.**
+Art-Net → DMX512 node: ArtPoll/ArtPollReply discovery, ArtDmx on UDP 6454, MAX485 line driver, self-hosted config
+page (Net/Sub-Net/Universe, DHCP/static, WiFi creds), settings in EEPROM. **Read `README.md` first.**
 
 ## Spine
-- Spine version: n/a — **exempt**. Firmware + one static Pages doc page. No Supabase, no shared shell.
+- Spine version: n/a — **exempt**. Firmware + one static Pages page. No Supabase, no shared shell.
   Registered in `workspace-apps.tsv` as `type=side-project, isolation=island-ok`.
 
 ## Layout
-- `sonor-artnet-node/sonor-artnet-node.ino` — the whole firmware (sketch folder must keep the .ino name for the Arduino IDE). Factory defaults are the `DEF_*` defines at the top; runtime config lives in EEPROM (struct `Config`, magic `0xA7`).
-- `sonor-artnet-node/src/EthernetENC/` — vendored EthernetENC 2.0.5, **patched**: stray `serialPrint()` removed from `Ethernet.cpp` (it dragged in HardwareSerial and collided with DMXSerial's USART vectors); `UIP_CONF_MAX_CONNECTIONS` 4→1, `UIP_UDP_BACKLOG` 2→4 in `utility/uipethernet-conf.h`.
-- `sonor-artnet-node/src/DMXSerial/` — vendored DMXSerial 1.5.3, unmodified.
-- `sonor-artnet-node/build/sonor-artnet-node.ino.hex` — prebuilt for Nano/atmega328 (same hex for old and new bootloader; only the upload baud differs).
-- `index.html` (repo root) — the Pages doc page (dark, #4bb9d3 STUDIO accent). Keep in step with README + the on-node page.
+- `sonor-artnet-node/` — the sketch. `config.h` = board select (`SONOR_BOARD` 1–6), factory defaults, pin maps.
+  `avr_node.h` = ATmega328P build (byte-counted; ENC28J60 variant is 93 % flash). `esp_node.h` = ESP32/ESP8266 build.
+- `sonor-artnet-node/src/` — vendored libs. **Every .cpp/.c under src/ is guarded** with `#include "…/config.h"` +
+  `#if SONOR_BOARD == …` because the IDE compiles all of src/ for every target. `src/Ethernet/utility/w5100.cpp`
+  includes `"../Ethernet.h"` (relative) so a globally installed Ethernet lib is never pulled in.
+  EthernetENC patch: stray `serialPrint()` removed from `Ethernet.cpp` (dragged in HardwareSerial → clashed with
+  DMXSerial's USART vectors); `UIP_CONF_MAX_CONNECTIONS` 4→1, `UIP_UDP_BACKLOG` 2→4.
+- `build.sh` — arduino-cli, all six variants → `firmware/<board>/` (hex for AVR; bootloader/partitions/boot_app0/firmware + `manifest.json` for ESP32; firmware + manifest for ESP8266). `firmware/VERSION` is read by the page.
+- `index.html` — Pages site. `BOARDS[]` drives the picker, flash panel, pin table, setup text and the SVG schematic
+  (`renderSchematic()` — generic: MCU block, MAX485, XLR block, optional modules, per-net bus columns). AVR flashing =
+  `web/avrgirl-arduino.js` (Web Serial STK500v1; board `nano` = 57600 old bootloader, `nano (new bootloader)` = 115200,
+  `uno`). ESP flashing = `<esp-web-install-button>` from unpkg esp-web-tools@10 + same-origin manifests.
+- Master Hub card: `sonor-master/index.html` `data-app-key="artnet-node"` → `../STUDIO - ArtNet Node/index.html`; hosted URL in appUrls.
 
 ## Rules
-- Never `#include <EthernetENC.h>` from Library Manager — always the bundled `src/` copy.
-- No `Serial.*` anywhere: the UART is the DMX line. Debug with the D3 LED.
-- Flash is ~93% full. Any new feature needs a byte-count check (`arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old`).
-- Universe changes apply live; IP changes require a power-cycle (no WDT reset — old-bootloader Nanos boot-loop on it).
-- Version bumps: `FW_VERSION` in the .ino, the `> Current version` line here, README, index.html, and the Master Hub card.
+- No `Serial.*` on AVR — the UART is the DMX line. Debug with the D3 LED. ESP builds use Serial2 (ESP32) / Serial1 (ESP8266) for DMX.
+- Any AVR change → re-run `build.sh 1` and check the byte count; 650 B of RAM headroom on the ENC28J60 build is the floor.
+- ESP32 DMX break is done with `uart_set_line_inverse` (180 µs) + 20 µs MAB then async `uart_write_bytes`; don't swap for
+  `uart_write_bytes_with_break` (break lands after the frame with no guaranteed MAB).
+- AVR: IP changes need a power-cycle (no WDT reset — old-bootloader Nanos boot-loop). ESP: `ESP.restart()` after save.
+- Version bump = `FW_VERSION` in `config.h`, this file, README, `index.html` fallback text, `bash build.sh`, Master Hub card + `app_versions`.
+- `firmware/` binaries are committed on purpose (Pages serves them). ~3.6 MB total; keep it that way (no merged 4 MB images).
 
 ## Data flows
-- Reads: Art-Net UDP 6454 (broadcast or unicast), HTTP GET on :80.
-- Writes: DMX512 on D1/TX, EEPROM bytes 0-16. No customer data.
+- Reads: Art-Net UDP 6454 (broadcast/unicast), HTTP on :80, mDNS (ESP).
+- Writes: DMX512 out, EEPROM/flash config. No customer data.

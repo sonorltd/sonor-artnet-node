@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 #define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
 
 /**
@@ -1895,3 +1898,5 @@ uip_send(const void *data, int len)
   }
 }
 /** @} */
+
+#endif // SONOR board guard

@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../config.h"
+#if !(defined(ESP32) || defined(ESP8266))
 // - - - - -
 // DMXSerial - A Arduino library for sending and receiving DMX using the builtin serial hardware port.
 // DMXSerial.cpp: Library implementation file
@@ -420,3 +423,5 @@ void _DMXTransmitted()
 
 
 // The End
+
+#endif // SONOR board guard

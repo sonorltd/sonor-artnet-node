@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 // DHCP Library v0.3 - April 25, 2009
 // Author: Jordan Terrell - blog.jordanterrell.com
 
@@ -489,3 +492,5 @@ void DhcpClass::printByte(char * buf, uint8_t n ) {
     *str-- = c < 10 ? c + '0' : c + 'A' - 10;
   } while(n);
 }
+
+#endif // SONOR board guard

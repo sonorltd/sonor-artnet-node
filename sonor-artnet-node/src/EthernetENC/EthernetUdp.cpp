@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 /*
  UIPUdp.cpp - Arduino implementation of a uIP wrapper class.
  Copyright (c) 2013 Norbert Truchsess <norbert.truchsess@t-online.de>
@@ -422,3 +425,5 @@ UIPUDP::_flushBlocks(uip_udp_msg_rec_t* block)
     }
 }
 #endif
+
+#endif // SONOR board guard

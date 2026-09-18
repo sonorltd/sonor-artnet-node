@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 /*
  mempool.cpp - sleek implementation of a memory pool
  Copyright (c) 2013 Norbert Truchsess <norbert.truchsess@t-online.de>
@@ -166,3 +169,5 @@ MemoryPool::blockSize(memhandle handle)
 {
   return blocks[handle].size;
 }
+
+#endif // SONOR board guard

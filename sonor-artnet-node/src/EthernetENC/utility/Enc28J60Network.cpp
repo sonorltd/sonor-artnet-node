@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 /*
  Enc28J60NetworkClass.h
  UIPEthernet network driver for Microchip ENC28J60 Ethernet Interface.
@@ -631,3 +634,5 @@ Enc28J60Network::linkStatus()
   SPI.endTransaction();
   return res;
 }
+
+#endif // SONOR board guard

@@ -4,104 +4,365 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SONOR Art-Net Node</title>
-<meta name="description" content="Ethernet → DMX512 Art-Net node on an Arduino Nano + ENC28J60. Firmware, wiring, flashing and config notes.">
+<meta name="description" content="Ethernet / WiFi → DMX512 Art-Net node for Arduino Nano, ESP32 and ESP8266. Flash from the browser, wiring diagrams, setup.">
 <style>
-  :root{--bg:#111418;--panel:#1a1f25;--line:#2b323a;--fg:#e6e8eb;--mute:#8a94a0;--acc:#4bb9d3;--ok:#2e7d4f}
+  :root{--bg:#111418;--panel:#1a1f25;--line:#2b323a;--fg:#e6e8eb;--mute:#8a94a0;--acc:#4bb9d3;--ok:#46c37b;--warn:#f5d05c;--bad:#e5484d}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
-  .wrap{max-width:820px;margin:0 auto;padding:32px 20px 64px}
-  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 64px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:8px}
   .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);font-weight:700}
   h1{font-size:30px;margin:6px 0 4px;letter-spacing:-.01em}
   .sub{color:var(--mute)}
-  h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:32px 0 10px}
+  h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:36px 0 12px;display:flex;align-items:center;gap:10px}
+  h2 .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#0b1014;align-items:center;justify-content:center;font-size:12px;font-weight:800}
   p{margin:8px 0}
   a{color:var(--acc)}
-  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
-  .btn{display:inline-block;padding:10px 16px;border-radius:8px;background:var(--acc);color:#0b1014;font-weight:700;text-decoration:none}
-  .btn.ghost{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
-  pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:12.5px;overflow:auto;line-height:1.45}
   code{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:13px}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:12.5px;overflow:auto;line-height:1.45;margin:8px 0}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
   th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-  .card b{display:block;margin-bottom:4px}
-  .card span{color:var(--mute);font-size:13px}
+  .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+  .board{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;position:relative}
+  .board:hover{border-color:#3a4450}
+  .board.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+  .board b{display:block;margin-bottom:3px}
+  .board span{color:var(--mute);font-size:13px;display:block}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-top:8px;margin-right:4px}
+  .tag.eth{border-color:#2e7d4f;color:var(--ok)}.tag.wifi{border-color:#3a5f8a;color:#7fb4f0}.tag.web{border-color:#5a4d1a;color:var(--warn)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .btn{display:inline-block;padding:10px 16px;border-radius:8px;background:var(--acc);color:#0b1014;font-weight:700;text-decoration:none;border:0;font-size:15px;cursor:pointer}
+  .btn.ghost{background:var(--bg);color:var(--fg);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.4;cursor:not-allowed}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font-size:14px}
+  .log{font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:#0b0e12;border:1px solid var(--line);border-radius:8px;padding:10px;height:150px;overflow:auto;white-space:pre-wrap;margin-top:12px;color:#b7c0ca}
+  .bar{height:6px;background:#0b0e12;border-radius:3px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
   .note{border-left:3px solid var(--acc);padding:8px 14px;background:var(--panel);border-radius:0 8px 8px 0;margin:12px 0}
+  .note.warn{border-color:var(--warn)}.note.bad{border-color:var(--bad)}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  svg{max-width:100%;height:auto;display:block}
+  .schem{background:#0d1014;border:1px solid var(--line);border-radius:10px;padding:8px;margin:10px 0}
   footer{margin-top:48px;color:var(--mute);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+  esp-web-install-button{--esp-tools-button-color:#0b1014;--esp-tools-button-background-color:#4bb9d3;--esp-tools-button-border-radius:8px}
+  .hide{display:none}
 </style>
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+<script src="web/avrgirl-arduino.js"></script>
 </head>
 <body>
 <div class="wrap">
 <header>
   <div class="eyebrow">SONOR · Studio</div>
   <h1>Art-Net Node</h1>
-  <div class="sub">Ethernet → DMX512 on an Arduino Nano + ENC28J60 shield. A drop-in stand-in for an Enttec ODE when the old software won't play. Firmware v0.2.0.</div>
-  <div class="btns">
-    <a class="btn" href="sonor-artnet-node/build/sonor-artnet-node.ino.hex" download>Download .hex</a>
-    <a class="btn ghost" href="https://github.com/sonorltd/sonor-artnet-node/archive/refs/heads/main.zip">Sketch + libraries (zip)</a>
-    <a class="btn ghost" href="https://github.com/sonorltd/sonor-artnet-node">GitHub repo</a>
-  </div>
+  <div class="sub">Ethernet or WiFi → DMX512, in the shape of an Enttec ODE. Pick a board, flash it from this page, wire a MAX485 to an XLR, set the universe on the node's own web page. Firmware <span id="fw">v0.3.0</span>.</div>
 </header>
 
-<div class="grid">
-  <div class="card"><b>Discoverable</b><span>Answers ArtPoll as “SONOR Node” — shows up in QLC+, DMX-Workshop, Resolume, MA, Control4 Art-Net drivers.</span></div>
-  <div class="card"><b>One universe out</b><span>ArtDmx → 512 channels of continuous DMX on the Nano's TX pin via a MAX485. Holds last look on loss of source.</span></div>
-  <div class="card"><b>Config page on the node</b><span>Browse to its IP to set Net / Sub-Net / Universe, DHCP or static IP. Wiring + flashing notes are on the page too.</span></div>
-  <div class="card"><b>Zero library installs</b><span>EthernetENC (patched) and DMXSerial are bundled inside the sketch. Open the .ino, pick the board, Upload.</span></div>
+<h2><span class="n">1</span> Pick your board</h2>
+<div class="boards" id="boards"></div>
+
+<h2><span class="n">2</span> Flash it — from this page, no software</h2>
+<div class="panel" id="flash"></div>
+<div class="note" id="browserNote"></div>
+<details><summary style="cursor:pointer;color:var(--mute)">Prefer the Arduino IDE, or the browser route isn't working?</summary>
+  <div id="ideNotes" style="margin-top:8px"></div>
+</details>
+
+<h2><span class="n">3</span> Wire it</h2>
+<div class="schem" id="schem"></div>
+<div class="grid2">
+  <div><table id="pinTable"></table></div>
+  <div id="wireNotes"></div>
 </div>
 
-<h2>Parts</h2>
+<h2><span class="n">4</span> Set it up</h2>
+<div id="setup"></div>
+
+<h2><span class="n">5</span> Test it</h2>
+<p>In QLC+ (free, Mac/Win): Inputs/Outputs → Universe 1 → tick the Art-Net <b>output</b> on your laptop's interface → set the target to the node's IP (or leave broadcast). Add a dimmer fixture, push the fader. The node's status page counts <b>frames received</b> — if that's climbing, packets are arriving and any problem is on the DMX side (A/B swapped is the usual one). If it isn't climbing, it's universe or subnet: the node and the console must be on the same subnet, and Port-Address 0/0/0 is "Universe 1" in QLC+'s <i>and</i> Universe 0 in MA.</p>
+<p>Any Art-Net tool's node discovery (QLC+ Art-Net plugin config, Enttec DMX-Workshop, Resolume, MA) should list it as <b>SONOR Node</b> with one output port.</p>
+
+<h2>Limits &amp; notes</h2>
 <table>
-  <tr><th>Part</th><th>Notes</th></tr>
-  <tr><td>Arduino Nano (ATmega328P)</td><td>Clone or genuine, old or new bootloader.</td></tr>
-  <tr><td>Nano Ethernet shield, ENC28J60</td><td>CS on D10 on nearly all of them (set <code>ETH_CS_PIN 8</code> if yours differs).</td></tr>
-  <tr><td>MAX485 / SN75176 / MAX3485 breakout</td><td>Any 5 V RS-485 module with A / B / DI / DE / RE pins.</td></tr>
-  <tr><td>XLR female, 3- or 5-pin</td><td>DMX out.</td></tr>
-  <tr><td>LED + 330 Ω (optional)</td><td>Activity blink on D3.</td></tr>
+  <tr><th>Board</th><th>Universes</th><th>Link</th><th>Notes</th></tr>
+  <tr><td>Nano + ENC28J60</td><td>1</td><td>Ethernet</td><td>Flash 93% full, 650 bytes of RAM headroom. It's at its ceiling — no further features.</td></tr>
+  <tr><td>Nano + W5500</td><td>1</td><td>Ethernet</td><td>Hardware TCP/IP chip, more headroom than the ENC28J60. Also works with W5100 shields.</td></tr>
+  <tr><td>ESP32 (any)</td><td>1 today</td><td>WiFi / Ethernet</td><td>Room for 2 universes on 2 UARTs — on the IDEAS list. mDNS: <code>sonor-node-xxxx.local</code>.</td></tr>
+  <tr><td>ESP8266</td><td>1</td><td>WiFi</td><td>Only a TX-only second UART (D4), so no RDM. Fine as a WiFi node.</td></tr>
 </table>
+<p>All boards: DMX refresh ~40 Hz continuous, last look held on loss of source. Art-Net 3/4 packets accepted (ArtPoll, ArtDmx), broadcast or unicast. WiFi is fine for a fixed install; for a show-critical line use a wired board.</p>
 
-<h2>Wiring</h2>
-<pre>Arduino Nano             MAX485 module              XLR (DMX out, female)
-────────────             ─────────────              ─────────────────────
-5V   ───────────────►  VCC
-GND  ───────────────►  GND  ──────────────────────► pin 1  (shield / GND)
-D1 (TX) ────────────►  DI
-D2   ───────────────►  DE  ┐ (tie DE and RE together)
-                       RE  ┘
-                       A   ──────────────────────► pin 3  (Data +)
-                       B   ──────────────────────► pin 2  (Data −)
-                       RO  (leave unconnected)
-D3   ──► 330Ω ──► LED ──► GND        (optional activity LED)</pre>
-<div class="note">The shield owns D10–D13 (SPI). The on-board D13 LED flickers with SPI traffic — normal. If you'd rather not use D2, tie DE+RE to 5 V and set <code>DMX_DE_PIN -1</code>.</div>
-
-<h2>Flashing</h2>
-<p><b>Arduino IDE:</b> open <code>sonor-artnet-node.ino</code> → Board <b>Arduino Nano</b> → Processor <b>ATmega328P (Old Bootloader)</b> for clones (plain <b>ATmega328P</b> for a recent genuine one) → Port → Upload. Nothing to install: the libraries are in <code>src/</code>. Don't also install EthernetENC from Library Manager — the stock copy won't link with DMXSerial.</p>
-<p><b>No IDE, just the hex:</b></p>
-<pre># old-bootloader clone (most Nanos)
-avrdude -c arduino -p atmega328p -P /dev/cu.usbserial-XXXX -b 57600  -D -U flash:w:sonor-artnet-node.ino.hex:i
-# new bootloader (genuine Nano since 2018)
-avrdude -c arduino -p atmega328p -P /dev/cu.usbserial-XXXX -b 115200 -D -U flash:w:sonor-artnet-node.ino.hex:i</pre>
-
-<h2>Config page</h2>
-<p>Plug in Ethernet, wait ~6 s, browse to the node's IP. On a network with DHCP it takes a lease (find it in the router's lease table under MAC <code>02:53:4F:4E:4F:52</code>, or via any Art-Net tool's node discovery). With no DHCP it sits on <code>2.0.0.10 / 255.0.0.0</code> like an ODE out of the box — set your laptop to <code>2.0.0.1 / 255.0.0.0</code>.</p>
-<table>
-  <tr><th>Section</th><th>What it does</th></tr>
-  <tr><td>Art-Net</td><td>Net 0–127, Sub-Net 0–15, Universe 0–15. Applies immediately on Save. Port-Address 0/0/0 is “Universe 1” in most consoles, Universe 0 in QLC+ and MA.</td></tr>
-  <tr><td>Network</td><td>DHCP (with static fallback) or Static; IP / mask / gateway. Applies after a power-cycle.</td></tr>
-  <tr><td>Status</td><td>Current IP, MAC, port address, DMX state.</td></tr>
-  <tr><td>Factory reset</td><td>Set Net 127 / Sub-Net 15 / Universe 15 and Save — or just re-flash.</td></tr>
-</table>
-
-<h2>Quick test on site</h2>
-<p>D3 LED on during boot, off once the network is up, then toggles on every Art-Net frame received for the configured universe. Not toggling → packets aren't reaching it (universe or subnet). Toggling but nothing lights → DMX wiring or polarity (swap A/B).</p>
-
-<h2>Limits</h2>
-<p>Single universe — a 328P has 2 KB of RAM. Flash ≈ 28.7 KB / 30 KB, RAM ≈ 1.4 KB / 2 KB. Refresh follows the source; the DMX line runs continuously at ~44 Hz regardless.</p>
-
-<footer>SONOR Ltd · STUDIO side-project · Bundled: EthernetENC 2.0.5 (Juraj Andrassy, patched) · DMXSerial 1.5.3 (Matthias Hertel)</footer>
+<footer>SONOR Ltd · STUDIO side-project · <a href="https://github.com/sonorltd/sonor-artnet-node">github.com/sonorltd/sonor-artnet-node</a> · Bundled: EthernetENC (Juraj Andrassy, patched), Arduino Ethernet, DMXSerial (Matthias Hertel), avrgirl-arduino (Suz Hinton), ESP Web Tools (ESPHome)</footer>
 </div>
+
+<script>
+// ─────────────────────────── board definitions ───────────────────────────
+const BOARDS = [
+ { id:'nano-enc28j60', name:'Arduino Nano + ENC28J60 shield', tags:['eth','web'], avr:true,
+   blurb:'The classic cheap Nano Ethernet shield (big ENC28J60 chip). The one that started this.',
+   mcu:{title:'Arduino Nano', pins:[['5V','5V'],['GND','GND'],['D1 / TX','DI'],['D2','DE'],['D3','LED']]},
+   modules:[], led:true, power:'5V',
+   wireNotes:`<p>The shield stacks on the Nano — nothing to wire for Ethernet. It owns D10–D13 (SPI); the on-board D13 LED flickers with traffic, that's normal.</p><p>Uploads share D0/D1 with the MAX485. Fine in practice (DI is an input); if an upload ever fails, pull the DI wire off, flash, put it back.</p>`,
+   ide:`Board <b>Arduino Nano</b> → Processor <b>ATmega328P (Old Bootloader)</b> for clones, plain <b>ATmega328P</b> for a recent genuine one. Open <code>sonor-artnet-node/sonor-artnet-node.ino</code> and Upload — libraries are bundled in <code>src/</code>, nothing to install. Board 1 is the default on AVR; no edit to <code>config.h</code> needed.`,
+   setup:'eth' },
+ { id:'nano-w5500', name:'Arduino Nano / Uno + W5500 or W5100 shield', tags:['eth','web'], avr:true,
+   blurb:'WIZnet hardware-TCP/IP shields. Same wiring, more headroom.',
+   mcu:{title:'Arduino Nano / Uno', pins:[['5V','5V'],['GND','GND'],['D1 / TX','DI'],['D2','DE'],['D3','LED']]},
+   modules:[], led:true, power:'5V',
+   wireNotes:`<p>Shield stacks on the board; it uses D10 (CS) and D11–D13 (SPI). Everything else as the ENC28J60 build.</p>`,
+   ide:`Board <b>Arduino Nano</b> (or <b>Uno</b>) → in <code>sonor-artnet-node/config.h</code> uncomment <code>#define SONOR_BOARD BOARD_NANO_W5500</code> → Upload. Libraries bundled.`,
+   setup:'eth' },
+ { id:'esp32-wifi', name:'ESP32 DevKit — WiFi', tags:['wifi','web'],
+   blurb:'Any ESP32 DevKit (WROOM-32). Joins your WiFi, or opens its own hotspot to be set up.',
+   mcu:{title:'ESP32 DevKit', pins:[['VIN / 5V','5V'],['GND','GND'],['GPIO17 (TX2)','DI'],['GPIO4','DE']]},
+   modules:[], led:false, power:'5V',
+   wireNotes:`<p>The on-board LED (GPIO2) is the activity light — no external LED needed. Power the DevKit from USB or 5 V on VIN; the MAX485 wants 5 V, and its DI input is happy with the ESP32's 3.3 V logic.</p>`,
+   ide:`Boards Manager: install <b>esp32</b> by Espressif (3.x). Board <b>ESP32 Dev Module</b>. No libraries to add — board 3 is the ESP32 default. Upload; hold <b>BOOT</b> while it says "Connecting…" on boards without auto-reset.`,
+   setup:'wifi' },
+ { id:'esp32-w5500', name:'ESP32 DevKit + W5500 module — Ethernet', tags:['eth','wifi','web'],
+   blurb:'ESP32 with a £3 W5500 SPI module for wired Ethernet. WiFi as fallback if the cable is out.',
+   mcu:{title:'ESP32 DevKit', pins:[['VIN / 5V','5V'],['GND','GND'],['GPIO17 (TX2)','DI'],['GPIO4','DE'],['3V3','3V3'],['GPIO18','SCK'],['GPIO19','MISO'],['GPIO23','MOSI'],['GPIO5','CS'],['GPIO35','INT']]},
+   modules:[{title:'W5500 module', pins:[['VCC','3V3'],['GND','GND'],['SCK','SCK'],['MISO','MISO'],['MOSI','MOSI'],['CS','CS'],['INT','INT']]}],
+   led:false, power:'5V',
+   wireNotes:`<p>The W5500 module runs on <b>3.3 V</b> (VCC → 3V3, not 5 V). Keep the SPI leads short — 10 cm of Dupont is fine, a metre isn't. RST can be left unconnected. On-board LED (GPIO2) shows activity.</p>`,
+   ide:`Boards Manager: <b>esp32</b> 3.x. Board <b>ESP32 Dev Module</b>. In <code>config.h</code> uncomment <code>#define SONOR_BOARD BOARD_ESP32_W5500</code>. No extra libraries (the core's own ETH driver handles the W5500).`,
+   setup:'ethwifi' },
+ { id:'wt32-eth01', name:'WT32-ETH01 — Ethernet on board', tags:['eth','wifi','web'],
+   blurb:'ESP32 module with an RJ45 (LAN8720) already on it. Neatest wired option; no USB, so it flashes through a USB-serial adapter.',
+   mcu:{title:'WT32-ETH01', pins:[['5V','5V'],['GND','GND'],['IO17 (TXD2)','DI'],['IO4','DE'],['RX0','U_TX'],['TX0','U_RX'],['IO0','U_BOOT']]},
+   modules:[{title:'USB-serial adapter (flashing only)', pins:[['TX','U_TX'],['RX','U_RX'],['GND','GND'],['5V','5V']]}],
+   led:false, power:'5V', bootNote:true,
+   wireNotes:`<p>Feed the module <b>5 V</b> (its own regulator makes the 3.3 V). To flash: adapter TX → RX0, RX → TX0, GND, 5 V, and hold <b>IO0 to GND</b> while power is applied — then release. The adapter can stay wired for later re-flashes.</p>`,
+   ide:`Boards Manager: <b>esp32</b> 3.x. Board <b>WT32-ETH01 Ethernet Module</b>. In <code>config.h</code> uncomment <code>#define SONOR_BOARD BOARD_WT32_ETH01</code>. Upload through the USB-serial adapter with IO0 grounded at power-up.`,
+   setup:'ethwifi' },
+ { id:'esp8266-wifi', name:'Wemos D1 mini / NodeMCU (ESP8266) — WiFi', tags:['wifi','web'],
+   blurb:'The £2 WiFi board. Perfectly good for a single wireless universe.',
+   mcu:{title:'D1 mini / NodeMCU', pins:[['5V','5V'],['GND','GND'],['D4 (GPIO2, TX1)','DI'],['D1 (GPIO5)','DE']]},
+   modules:[], led:false, power:'5V',
+   wireNotes:`<p>D4 doubles as the on-board LED, so it flickers with the DMX stream — normal. Serial1 on D4 is transmit-only, which is all DMX out needs.</p>`,
+   ide:`Boards Manager: <b>esp8266</b> by ESP8266 Community. Board <b>LOLIN(WEMOS) D1 R2 &amp; mini</b> (or NodeMCU 1.0). Board 6 is the ESP8266 default — Upload.`,
+   setup:'wifi' },
+];
+
+const NET = {  // wire colours by net
+  '5V':'#e5484d', '3V3':'#f0883e', 'GND':'#9aa4b2', 'DI':'#4bb9d3', 'DE':'#46c37b', 'LED':'#f5d05c',
+  'A':'#f5d05c', 'B':'#e6e8eb', 'SCK':'#c084fc', 'MISO':'#f472b6', 'MOSI':'#a78bfa', 'CS':'#60a5fa', 'INT':'#a3e635',
+  'U_TX':'#7fb4f0', 'U_RX':'#7fb4f0', 'U_BOOT':'#9aa4b2'
+};
+
+// ─────────────────────────── board picker ───────────────────────────
+const boardsEl = document.getElementById('boards');
+BOARDS.forEach(b => {
+  const d = document.createElement('div'); d.className = 'board'; d.dataset.id = b.id;
+  d.innerHTML = `<b>${b.name}</b><span>${b.blurb}</span>` + b.tags.map(t => `<i class="tag ${t}">${{eth:'Ethernet',wifi:'WiFi',web:'Browser flash'}[t]}</i>`).join('');
+  d.onclick = () => select(b.id);
+  boardsEl.appendChild(d);
+});
+
+function select(id) {
+  const b = BOARDS.find(x => x.id === id);
+  document.querySelectorAll('.board').forEach(e => e.classList.toggle('sel', e.dataset.id === id));
+  try { localStorage.setItem('sonor-artnet-board', id); } catch (e) {}
+  history.replaceState(null, '', '#' + id);
+  renderFlash(b); renderSchematic(b); renderPins(b); renderSetup(b);
+  document.getElementById('wireNotes').innerHTML = b.wireNotes;
+  document.getElementById('ideNotes').innerHTML = `<p>${b.ide}</p><p>Or grab the whole thing: <a href="https://github.com/sonorltd/sonor-artnet-node/archive/refs/heads/main.zip">sketch + bundled libraries (zip)</a>.</p>`;
+}
+
+// ─────────────────────────── flashing ───────────────────────────
+const hasSerial = 'serial' in navigator;
+document.getElementById('browserNote').innerHTML = hasSerial
+  ? 'This page talks to the board over <b>Web Serial</b>, so it needs a desktop <b>Chrome, Edge or Opera</b> (Safari and Firefox don\'t have it). Plug the board in by USB first. If it doesn\'t appear in the port list on a Mac, the CH340 driver is the usual culprit — macOS 13+ has it built in; older needs the WCH driver.'
+  : '<b>This browser can\'t flash boards</b> — it has no Web Serial. Open this page in desktop Chrome, Edge or Opera, or use the Arduino IDE route below.';
+if (!hasSerial) document.getElementById('browserNote').classList.add('warn');
+
+function renderFlash(b) {
+  const el = document.getElementById('flash');
+  if (b.avr) {
+    el.innerHTML = `
+      <div class="row">
+        <select id="bl">
+          <option value="nano">Nano — old bootloader (most clones, 57600)</option>
+          <option value="nano (new bootloader)">Nano — new bootloader (genuine, 2018+, 115200)</option>
+          <option value="uno">Uno</option>
+        </select>
+        <button class="btn" id="goAvr" ${hasSerial ? '' : 'disabled'}>Connect &amp; flash</button>
+        <a class="btn ghost" href="firmware/${b.id}/sonor-artnet-node.hex" download="sonor-artnet-node-${b.id}.hex">Download .hex</a>
+      </div>
+      <div class="bar"><i id="pb"></i></div>
+      <div class="log" id="log">Ready. Pick the bootloader, click Connect &amp; flash, choose the board's port in the browser's pop-up.\nNot sure which bootloader? Try "old" first; if it stalls at "sync", unplug, replug, try "new".</div>`;
+    document.getElementById('goAvr').onclick = () => flashAvr(b);
+  } else {
+    el.innerHTML = `
+      <div class="row">
+        <esp-web-install-button manifest="firmware/${b.id}/manifest.json">
+          <button slot="activate" class="btn">Connect &amp; flash</button>
+          <span slot="unsupported">Web Serial not available in this browser.</span>
+          <span slot="not-allowed">This page must be opened over https.</span>
+        </esp-web-install-button>
+        <a class="btn ghost" href="firmware/${b.id}/firmware.bin" download="sonor-artnet-node-${b.id}.bin">Download .bin</a>
+        ${b.id.startsWith('esp32') || b.id === 'wt32-eth01' ? `<a class="btn ghost" href="firmware/${b.id}/manifest.json">manifest</a>` : ''}
+      </div>
+      <p style="color:var(--mute);font-size:13px;margin-top:12px">Click Connect &amp; flash → pick the port → <b>Install</b>. Tick "erase device" the first time. ${b.bootNote ? 'On the WT32-ETH01 hold <b>IO0 to GND</b> while powering up so it enters download mode.' : 'If it sits at "Connecting…", hold the board\'s <b>BOOT</b> button until it starts writing.'} Takes about a minute; the board reboots into the node when done.</p>`;
+  }
+}
+
+async function flashAvr(b) {
+  const log = document.getElementById('log'), pb = document.getElementById('pb'), btn = document.getElementById('goAvr');
+  const say = m => { log.textContent += '\n' + m; log.scrollTop = log.scrollHeight; };
+  btn.disabled = true; pb.style.width = '0';
+  try {
+    say('Fetching firmware…');
+    const hex = await (await fetch(`firmware/${b.id}/sonor-artnet-node.hex`, {cache:'no-store'})).arrayBuffer();
+    say(`Got ${hex.byteLength} bytes. Choose the port in the pop-up…`);
+    const board = document.getElementById('bl').value;
+    const girl = new AvrgirlArduino({ board, debug: m => { say(String(m)); const p = /(\d+)\s*%/.exec(String(m)); if (p) pb.style.width = p[1] + '%'; } });
+    await new Promise((res, rej) => girl.flash(hex, err => err ? rej(err) : res()));
+    pb.style.width = '100%';
+    say('✓ Done. The board is running the node — plug in Ethernet and give it ~6 s.');
+  } catch (e) {
+    say('✗ ' + (e && e.message ? e.message : e));
+    say('Tips: wrong bootloader is the #1 cause (swap old/new). Close the Arduino IDE serial monitor if it\'s open. Unplug/replug and try again.');
+  }
+  btn.disabled = false;
+}
+
+// ─────────────────────────── schematic (SVG) ───────────────────────────
+function renderSchematic(b) {
+  const W = 880, PIN = 26;
+  const S = [];
+  const txt = (x, y, s, o = {}) => S.push(`<text x="${x}" y="${y}" fill="${o.fill || '#e6e8eb'}" font-size="${o.size || 12}" font-family="ui-monospace,Menlo,Consolas,monospace" text-anchor="${o.anchor || 'start'}" font-weight="${o.w || 400}" dominant-baseline="middle">${s}</text>`);
+  const box = (x, y, w, h, title) => { S.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#161b21" stroke="#3a4450" stroke-width="1.5"/>`); txt(x + w / 2, y + 16, title, {anchor:'middle', w:700, size:12.5}); };
+  const wire = (pts, net) => S.push(`<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${NET[net] || '#fff'}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`);
+  const dot = (x, y, net) => S.push(`<circle cx="${x}" cy="${y}" r="3" fill="${NET[net] || '#fff'}"/>`);
+
+  // MCU block (left)
+  const mx = 30, my = 56, mw = 190, mh = 34 + b.mcu.pins.length * PIN;
+  box(mx, my, mw, mh, b.mcu.title);
+  const mcuPin = {};
+  b.mcu.pins.forEach(([label, net], i) => {
+    const y = my + 36 + i * PIN + PIN / 2;
+    txt(mx + mw - 10, y, label, {anchor:'end', fill:'#c9d1d9'});
+    S.push(`<line x1="${mx + mw}" y1="${y}" x2="${mx + mw + 14}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+    mcuPin[net] = [mx + mw + 14, y];
+  });
+
+  // MAX485 block (middle)
+  const dx = 470, dy = 56, dw = 150, maxPins = [['VCC','5V'],['GND','GND'],['DI','DI'],['DE','DE'],['RE','DE2'],['RO',null]];
+  const dh = 34 + maxPins.length * PIN;
+  box(dx, dy, dw, dh, 'MAX485 module');
+  const maxPin = {};
+  maxPins.forEach(([label, net], i) => {
+    const y = dy + 36 + i * PIN + PIN / 2;
+    txt(dx + 10, y, label, {fill:'#c9d1d9'});
+    S.push(`<line x1="${dx - 14}" y1="${y}" x2="${dx}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+    if (net) maxPin[net] = [dx - 14, y];
+  });
+  const ay = dy + 36 + PIN / 2 + PIN * 1, by = ay + PIN * 2;   // A, B on the right side
+  txt(dx + dw - 10, ay, 'A', {anchor:'end', fill:'#c9d1d9'}); txt(dx + dw - 10, by, 'B', {anchor:'end', fill:'#c9d1d9'});
+  S.push(`<line x1="${dx + dw}" y1="${ay}" x2="${dx + dw + 14}" y2="${ay}" stroke="#6b7684" stroke-width="2"/><line x1="${dx + dw}" y1="${by}" x2="${dx + dw + 14}" y2="${by}" stroke="#6b7684" stroke-width="2"/>`);
+  // DE–RE link
+  wire([maxPin.DE, [maxPin.DE[0] - 10, maxPin.DE[1]], [maxPin.DE[0] - 10, maxPin.DE2[1]], maxPin.DE2], 'DE');
+  txt(dx + 46, maxPin.DE[1] + 13, 'tie DE + RE', {fill:'#6b7684', size:10});
+
+  // XLR female (right) — drawn as a connector block, pins 3 / 2 / 1 top to bottom
+  const xx = 760, xw = 100, xpins = [['3  Data +','A'],['2  Data −','B'],['1  GND','GND']];
+  const xh = 34 + xpins.length * PIN, xy = dy;
+  box(xx, xy, xw, xh, 'XLR female');
+  const xp = {};
+  xpins.forEach(([label, net], i) => {
+    const y = xy + 36 + i * PIN + PIN / 2;
+    txt(xx + 10, y, label, {fill:'#c9d1d9'});
+    S.push(`<line x1="${xx - 14}" y1="${y}" x2="${xx}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+    xp[net] = [xx - 14, y];
+  });
+  // little face icon under the block so the pin positions on a real socket are obvious
+  const fcx = xx + xw / 2, fcy = xy + xh + 30;
+  S.push(`<circle cx="${fcx}" cy="${fcy}" r="20" fill="#161b21" stroke="#3a4450" stroke-width="1.2"/>`);
+  [[fcx - 10, fcy - 6, '2'], [fcx + 10, fcy - 6, '3'], [fcx, fcy + 10, '1']].forEach(([x, y, n]) => { S.push(`<circle cx="${x}" cy="${y}" r="4" fill="#0d1014" stroke="#9aa4b2" stroke-width="1"/>`); txt(x, y + 0.5, n, {anchor:'middle', size:7, fill:'#c9d1d9'}); });
+  txt(fcx, fcy + 34, 'DMX out · face view', {anchor:'middle', fill:'#6b7684', size:10});
+  // A → pin 3, B → pin 2 (two short bus columns between the MAX485 and the XLR)
+  const xb = dx + dw + 40;
+  wire([[dx + dw + 14, ay], [xb, ay], [xb, xp.A[1]], xp.A], 'A'); dot(xb, ay, 'A'); dot(xb, xp.A[1], 'A');
+  wire([[dx + dw + 14, by], [xb + 16, by], [xb + 16, xp.B[1]], xp.B], 'B'); dot(xb + 16, by, 'B'); dot(xb + 16, xp.B[1], 'B');
+
+  // buses between MCU and MAX485: one column per net
+  const busX0 = mx + mw + 40, order = ['5V','GND','DI','DE'];
+  let bus = {};
+  order.forEach((net, i) => bus[net] = busX0 + i * 16);
+  const routeTo = (net, dst) => { const s = mcuPin[net]; if (!s || !dst) return; wire([s, [bus[net], s[1]], [bus[net], dst[1]], dst], net); dot(bus[net], s[1], net); dot(bus[net], dst[1], net); };
+  routeTo('5V', maxPin['5V']); routeTo('GND', maxPin.GND); routeTo('DI', maxPin.DI); routeTo('DE', maxPin.DE);
+  // GND onward to XLR pin 1 — over the top of the blocks so it never crosses a module
+  const topY = my - 16;
+  wire([[bus.GND, maxPin.GND[1]], [bus.GND, topY], [xb + 32, topY], [xb + 32, xp.GND[1]], xp.GND], 'GND');
+  dot(bus.GND, maxPin.GND[1], 'GND');
+  const gy = my + mh + 24;   // ground rail under the MCU for the LED branch
+
+  // optional LED branch
+  if (b.led && mcuPin.LED) {
+    const [lx, ly] = mcuPin.LED, x1 = lx + 16;
+    wire([[lx, ly], [x1, ly], [x1, ly + 22]], 'LED');
+    S.push(`<rect x="${x1 - 8}" y="${ly + 22}" width="16" height="30" fill="#161b21" stroke="#f5d05c" stroke-width="1.6"/>`); txt(x1 + 14, ly + 37, '330 Ω', {fill:'#8a94a0', size:10});
+    wire([[x1, ly + 52], [x1, ly + 64]], 'LED');
+    S.push(`<polygon points="${x1 - 8},${ly + 64} ${x1 + 8},${ly + 64} ${x1},${ly + 78}" fill="#161b21" stroke="#f5d05c" stroke-width="1.6"/><line x1="${x1 - 8}" y1="${ly + 78}" x2="${x1 + 8}" y2="${ly + 78}" stroke="#f5d05c" stroke-width="1.6"/>`); txt(x1 + 14, ly + 71, 'LED', {fill:'#8a94a0', size:10});
+    wire([[x1, ly + 78], [x1, gy], [bus.GND, gy], [bus.GND, maxPin.GND[1]]], 'GND'); dot(x1, gy, 'GND');
+  }
+
+  // boot strap (WT32-ETH01 IO0): dashed lead to a ground symbol
+  if (mcuPin.U_BOOT) {
+    const [bx0, by0] = mcuPin.U_BOOT;
+    S.push(`<polyline points="${bx0},${by0} ${bx0 + 24},${by0} ${bx0 + 24},${by0 + 18}" fill="none" stroke="#9aa4b2" stroke-width="2" stroke-dasharray="4 3"/>`);
+    [[10, 18], [6, 22], [2, 26]].forEach(([hw, yo]) => S.push(`<line x1="${bx0 + 24 - hw}" y1="${by0 + yo}" x2="${bx0 + 24 + hw}" y2="${by0 + yo}" stroke="#9aa4b2" stroke-width="2"/>`));
+    txt(bx0 + 40, by0 + 8, 'to GND while powering up = download mode', {fill:'#8a94a0', size:10});
+  }
+
+  // extra modules (W5500, USB-serial) below the MAX485
+  let ey = dy + dh + 50;
+  b.modules.forEach(mod => {
+    const eh = 34 + mod.pins.length * PIN;
+    box(dx, ey, dw + 40, eh, mod.title);
+    const nets = mod.pins.map(p => p[1]);
+    // fresh bus columns to the right of the main ones
+    let bx = busX0 + 4 * 16 + 20; const b2 = {};
+    nets.forEach((n, i) => b2[n] = bx + i * 14);
+    mod.pins.forEach(([label, net], i) => {
+      const y = ey + 36 + i * PIN + PIN / 2;
+      txt(dx + 10, y, label, {fill:'#c9d1d9'});
+      S.push(`<line x1="${dx - 14}" y1="${y}" x2="${dx}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+      const s = mcuPin[net]; if (!s) return;
+      const col = (net === 'GND' || net === '5V') ? bus[net] : b2[net];
+      wire([s, [col, s[1]], [col, y], [dx - 14, y]], net); dot(col, s[1], net); dot(col, y, net);
+    });
+    ey += eh + 30;
+  });
+  const H = Math.max(ey, gy + 40, my + mh + 100, xy + xh + 90);
+  // legend
+  const legendNets = [...new Set(['5V','GND','DI','DE', ...(b.led ? ['LED'] : []), 'A','B', ...b.modules.flatMap(m => m.pins.map(p => p[1]))])].filter(n => NET[n]);
+  let lx = 30; legendNets.forEach(n => { S.push(`<line x1="${lx}" y1="${H - 14}" x2="${lx + 18}" y2="${H - 14}" stroke="${NET[n]}" stroke-width="3"/>`); txt(lx + 24, H - 14, n.replace('U_', 'USB-'), {fill:'#8a94a0', size:10}); lx += 24 + n.length * 7 + 22; });
+  document.getElementById('schem').innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring schematic for ${b.name}">${S.join('')}</svg>`;
+}
+
+function renderPins(b) {
+  const rows = [];
+  const label = {'5V':'MAX485 VCC (5 V)', 'GND':'MAX485 GND · XLR pin 1', 'DI':'MAX485 DI (DMX data)', 'DE':'MAX485 DE + RE tied (driver enable)', 'LED':'330 Ω → LED → GND (activity)', '3V3':'W5500 VCC (3.3 V)', 'SCK':'W5500 SCK', 'MISO':'W5500 MISO', 'MOSI':'W5500 MOSI', 'CS':'W5500 CS', 'INT':'W5500 INT', 'U_TX':'USB-serial TX', 'U_RX':'USB-serial RX', 'U_BOOT':'to GND during power-up = download mode'};
+  b.mcu.pins.forEach(([p, net]) => rows.push(`<tr><td><code>${p}</code></td><td>${label[net] || net}</td></tr>`));
+  rows.push(`<tr><td>MAX485 <code>A</code> / <code>B</code></td><td>XLR pin 3 (Data +) / pin 2 (Data −)</td></tr>`);
+  document.getElementById('pinTable').innerHTML = `<tr><th>${b.mcu.title} pin</th><th>Goes to</th></tr>` + rows.join('');
+}
+
+function renderSetup(b) {
+  const eth = `<p><b>Wired:</b> plug in Ethernet and power. With DHCP on the network it takes a lease — find it in the router's lease table (MAC starts <code>02:53:4F</code> on the Nano builds) or with any Art-Net tool's node discovery. With no DHCP (cable straight to a laptop, an isolated lighting switch) it sits on <code>2.0.0.10 / 255.0.0.0</code> like an ODE out of the box — set the laptop to <code>2.0.0.1 / 255.0.0.0</code>.</p>`;
+  const wifi = `<p><b>WiFi first run:</b> with no credentials saved the node opens its own hotspot <code>SONOR-Node-xxxx</code> (open, no password). Join it from a phone, browse to <code>http://192.168.4.1/</code>, enter your WiFi name + password, Save. It restarts onto your network; find it as <code>sonor-node-xxxx.local</code>, via the router's lease table, or Art-Net discovery.</p>`;
+  const page = `<p><b>Then, on the node's page</b> <code>http://&lt;node-ip&gt;/</code>: set <b>Net / Sub-Net / Universe</b> (0/0/0 = "Universe 1" on most consoles), choose <b>DHCP or static IP</b>, Save. Wiring and flashing notes are on the page too, so nobody needs this site on site. Factory reset = Net 127 / Sub-Net 15 / Universe 15 + Save.</p>`;
+  document.getElementById('setup').innerHTML = (b.setup === 'eth' ? eth : b.setup === 'wifi' ? wifi : eth + `<p><b>WiFi fallback:</b> enter WiFi credentials on the node's page and it'll use them whenever the cable is out.</p>`) + page;
+}
+
+// initial selection: hash → saved → first
+let initial = location.hash.slice(1);
+if (!BOARDS.some(b => b.id === initial)) { try { initial = localStorage.getItem('sonor-artnet-board'); } catch (e) {} }
+select(BOARDS.some(b => b.id === initial) ? initial : BOARDS[0].id);
+fetch('firmware/VERSION', {cache:'no-store'}).then(r => r.ok ? r.text() : '').then(t => { const v = /version\s+(\S+)/.exec(t || ''); if (v) document.getElementById('fw').textContent = 'v' + v[1]; }).catch(() => {});
+</script>
 </body>
 </html>

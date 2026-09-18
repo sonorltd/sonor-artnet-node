@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# build.sh — compile every board variant with arduino-cli and lay the binaries out under firmware/
+# so the Pages site (index.html) can flash them from the browser.
+#
+#   bash build.sh            # all boards
+#   bash build.sh 3          # one board number (see config.h)
+#
+# Needs: arduino-cli with arduino:avr, esp32:esp32 (3.x) and esp8266:esp8266 cores installed.
+set -euo pipefail
+cd "$(dirname "$0")"
+CLI="${ARDUINO_CLI:-arduino-cli}"
+SKETCH="$PWD/sonor-artnet-node"
+OUT="$PWD/firmware"
+ESP32_CORE="$($CLI config dump 2>/dev/null | grep -o '/[^ ]*packages' | head -1 || true)"
+[[ -z "$ESP32_CORE" ]] && ESP32_CORE="$HOME/.arduino15/packages"
+BOOT_APP0="$(ls "$ESP32_CORE"/esp32/hardware/esp32/*/tools/partitions/boot_app0.bin 2>/dev/null | head -1)"
+
+# id | folder | fqbn | chip family for esp-web-tools ("" = AVR)
+BOARDS=(
+  "1|nano-enc28j60|arduino:avr:nano:cpu=atmega328old|"
+  "2|nano-w5500|arduino:avr:nano:cpu=atmega328old|"
+  "3|esp32-wifi|esp32:esp32:esp32|ESP32"
+  "4|esp32-w5500|esp32:esp32:esp32|ESP32"
+  "5|wt32-eth01|esp32:esp32:wt32-eth01|ESP32"
+  "6|esp8266-wifi|esp8266:esp8266:d1_mini|ESP8266"
+)
+ONLY="${1:-}"
+FW=$(grep -o 'FW_VERSION *"[^"]*"' sonor-artnet-node/config.h | cut -d'"' -f2)
+
+for row in "${BOARDS[@]}"; do
+  IFS='|' read -r id dir fqbn chip <<<"$row"
+  [[ -n "$ONLY" && "$ONLY" != "$id" ]] && continue
+  echo "▸ [$id] $dir  ($fqbn)"
+  tmp="$(mktemp -d)"
+  $CLI compile --fqbn "$fqbn" \
+    --build-property "compiler.cpp.extra_flags=-DSONOR_BOARD=$id" \
+    --build-property "compiler.c.extra_flags=-DSONOR_BOARD=$id" \
+    --output-dir "$tmp" "$SKETCH" 2>&1 | grep -E "Sketch uses|Global variables|RAM|IROM|error" || true
+  mkdir -p "$OUT/$dir"
+  rm -f "$OUT/$dir"/*
+  if [[ -z "$chip" ]]; then
+    cp "$tmp/sonor-artnet-node.ino.hex" "$OUT/$dir/sonor-artnet-node.hex"
+  elif [[ "$chip" == "ESP32" ]]; then
+    cp "$tmp/sonor-artnet-node.ino.bootloader.bin" "$OUT/$dir/bootloader.bin"
+    cp "$tmp/sonor-artnet-node.ino.partitions.bin" "$OUT/$dir/partitions.bin"
+    cp "$BOOT_APP0"                                  "$OUT/$dir/boot_app0.bin"
+    cp "$tmp/sonor-artnet-node.ino.bin"              "$OUT/$dir/firmware.bin"
+    cat > "$OUT/$dir/manifest.json" <<EOF
+{
+  "name": "SONOR Art-Net Node ($dir)",
+  "version": "$FW",
+  "new_install_prompt_erase": true,
+  "builds": [
+    { "chipFamily": "ESP32",
+      "parts": [
+        { "path": "bootloader.bin", "offset": 4096 },
+        { "path": "partitions.bin", "offset": 32768 },
+        { "path": "boot_app0.bin",  "offset": 57344 },
+        { "path": "firmware.bin",   "offset": 65536 }
+      ] }
+  ]
+}
+EOF
+  else
+    cp "$tmp/sonor-artnet-node.ino.bin" "$OUT/$dir/firmware.bin"
+    cat > "$OUT/$dir/manifest.json" <<EOF
+{
+  "name": "SONOR Art-Net Node ($dir)",
+  "version": "$FW",
+  "new_install_prompt_erase": true,
+  "builds": [
+    { "chipFamily": "ESP8266",
+      "parts": [ { "path": "firmware.bin", "offset": 0 } ] }
+  ]
+}
+EOF
+  fi
+  rm -rf "$tmp"
+done
+echo "version $FW" > "$OUT/VERSION"
+echo "✓ firmware/ updated (v$FW)"
+du -sh "$OUT"

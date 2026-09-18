@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 // Arduino DNS client for Enc28J60-based Ethernet shield
 // (c) Copyright 2009-2010 MCQN Ltd.
 // Released under Apache License, version 2.0
@@ -414,3 +417,5 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     return -10;//INVALID_RESPONSE;
 }
 
+
+#endif // SONOR board guard

@@ -1,3 +1,6 @@
+// SONOR: compile only for the board that uses this library (everything under src/ is built for every target)
+#include "../../config.h"
+#if SONOR_BOARD == BOARD_NANO_ENC28J60
 /*
  UIPEthernet.cpp - Arduino implementation of a uIP wrapper class.
  Copyright (c) 2013 Norbert Truchsess <norbert.truchsess@t-online.de>
@@ -554,3 +557,5 @@ UIPEthernetClass Ethernet;
 
 // SONOR patch: leftover debug helper removed — it dragged in HardwareSerial,
 // which clashes with DMXSerial's UART interrupt vectors.
+
+#endif // SONOR board guard
