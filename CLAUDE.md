@@ -25,6 +25,7 @@ page (Net/Sub-Net/Universe, DHCP/static, WiFi creds), settings in EEPROM. **Read
   (`renderSchematic()` — generic: MCU block, MAX485, XLR block, optional modules, per-net bus columns). AVR flashing =
   `web/avrgirl-arduino.js` (Web Serial STK500v1; board `nano` = 57600 old bootloader, `nano (new bootloader)` = 115200,
   `uno`). ESP flashing = `<esp-web-install-button>` from unpkg esp-web-tools@10 + same-origin manifests.
+- `control4/` — **Control4 DriverWorks driver** (`sonor_artnet_dmx.c4z`, built by `control4/build-c4z.sh`). 16 `light_v2` fixture proxies (Dimmer / RGB / RGBW, per-slot DMX address + type properties) → ArtDmx over UDP 6454 unicast to the node, from the controller itself. Colour wheel + CCT come from `supports_color` on the light_v2 proxy (OS 3.3+), no eDIDIO/gateway needed. 25 Hz software fade engine, 2 s keep-alive frame, ArtPoll → Node Found/Lost events. `control4/test/harness.lua` stubs the C4 API (`lua5.3 test/harness.lua` from `control4/`) — run before every build; **not yet run in Composer** (UDP handshake in `OnConnectionStatusChanged` is the first thing to check).
 - Master Hub card: `sonor-master/index.html` `data-app-key="artnet-node"` → `../STUDIO - ArtNet Node/index.html`; hosted URL in appUrls.
 
 ## Rules

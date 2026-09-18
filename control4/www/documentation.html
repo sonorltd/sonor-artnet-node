@@ -1,0 +1,28 @@
+<html><body style="font-family:sans-serif;max-width:720px">
+<h2>Sonor Art-Net DMX Node</h2>
+<p>Drives any Art-Net node (SONOR Art-Net Node, Enttec ODE, …) straight from the controller over UDP 6454. Sixteen <b>Fixture</b> light proxies each map to a DMX start address and fixture type, and every RGB / RGBW fixture gets the OS 3.3 colour wheel and CCT slider in Navigator, works in Lighting Scenes, and reports its level back to keypad LEDs.</p>
+
+<h3>Setup</h3>
+<ol>
+<li>Set <b>Node IP</b> (the node's own config page shows it; <code>2.0.0.10</code> out of the box with no DHCP). Match <b>Art-Net Net / Sub-Net / Universe</b> to the node — the defaults (0 / 0 / 0) are the node's factory settings.</li>
+<li>For each fixture: set <b>Slot n Address</b> (DMX start channel, 1–512; 0 = unused) and <b>Slot n Type</b>:
+  <ul>
+  <li><b>Dimmer</b> — 1 channel [L]</li>
+  <li><b>RGB</b> — 3 channels [R G B]; CCT picks are rendered as a blackbody RGB mix</li>
+  <li><b>RGBW</b> — 4 channels [R G B W]; CCT picks drive the W LED and tint it with RGB away from <b>White LED Kelvin</b> (set this to your strip's white LED temperature); colour picks move the common part of RGB onto W when <b>RGBW White Extraction</b> is On</li>
+  </ul>
+  Rename the fixtures in Composer and hide unused ones. Check <b>Node Status</b> — it shows the node's name and IP once it answers ArtPoll.</li>
+<li>Fixtures that share a start address are driven in unison; overlapping ranges are your responsibility.</li>
+</ol>
+
+<h3>Properties</h3>
+<p><b>Refresh Interval (s)</b> — a full frame is re-sent this often when nothing is fading (0 = only on change). The SONOR node holds the last look if frames stop; leave at 2 s so a rebooted node picks the look back up. <b>Default Fade (ms)</b> — used when Navigator / programming gives no rate. <b>Default On Level</b> — used by ON when the fixture has no remembered level.</p>
+
+<h3>Programming</h3>
+<p><b>Commands:</b> Set Fixture Level (fixture 0 = all), Set Fixture Colour (RGB 0–255, fixture 0 = all), Set Channel (raw DMX channel 1–512, bypasses the slots), Blackout On/Off, Identify Fixture (flashes it white three times).<br>
+<b>Actions:</b> Reconnect, Poll Node, Resend DMX Frame, All Fixtures Off.<br>
+<b>Events:</b> Node Found, Node Lost (no ArtPollReply for 10 s), Blackout On, Blackout Off.</p>
+
+<h3>Notes</h3>
+<p>DMX fixtures don't fade themselves — the driver runs a 25 Hz software fade and sends a full 512-channel frame while anything is moving. One driver instance per node / universe; add it again for a second node. Turn <b>Debug</b> On to see packets and proxy traffic in the Lua output.</p>
+</body></html>

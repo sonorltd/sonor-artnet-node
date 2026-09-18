@@ -38,6 +38,14 @@ Browse to the node's IP — `http://2.0.0.10/` with no DHCP, whatever the router
 
 On the AVR boards a network change needs a power-cycle; the ESP boards restart themselves.
 
+## Control4 driver
+
+`control4/sonor_artnet_dmx.c4z` — a DriverWorks driver that sends Art-Net to the node straight from the controller.
+Sixteen **Fixture** light proxies, each with a DMX start address and type (Dimmer / RGB / RGBW), so every RGB(W)
+fixture gets the OS 3.3 colour wheel and CCT slider in Navigator and works in Lighting Scenes. Add via
+Composer › Driver › Add or Update Driver, set **Node IP** + Net / Sub-Net / Universe, then address the slots.
+Rebuild with `control4/build-c4z.sh` (runs the offline harness in `control4/test/` first).
+
 ## Repo layout
 
 ```

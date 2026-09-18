@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<devicedata>
+  <copyright>Copyright 2026 Sonor Ltd. All rights reserved.</copyright>
+  <creator>Sonor Ltd</creator>
+  <manufacturer>Sonor</manufacturer>
+  <name>Sonor Art-Net DMX Node</name>
+  <model>Art-Net DMX (16 fixtures, colour)</model>
+  <created>09/18/2026 12:00</created>
+  <modified>09/18/2026 12:00</modified>
+  <version>1</version>
+  <control>lua_gen</control>
+  <controlmethod>ip</controlmethod>
+  <driver>DriverWorks</driver>
+  <small>devices_sm/light_bulb.gif</small>
+  <large>devices_lg/light_bulb.gif</large>
+  <auto_update>false</auto_update>
+  <minimum_os_version>3.3.0</minimum_os_version>
+
+  <config>
+    <documentation file="www/documentation.html"/>
+    <script file="driver.lua"/>
+    <properties>
+      <property><name>Driver Version</name><type>STRING</type><readonly>true</readonly><default>0.1.0</default></property>
+      <property><name>Node IP</name><type>STRING</type><default></default></property>
+      <property><name>Art-Net Net</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>127</maximum><default>0</default></property>
+      <property><name>Art-Net Sub-Net</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>15</maximum><default>0</default></property>
+      <property><name>Art-Net Universe</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>15</maximum><default>0</default></property>
+      <property><name>Node Status</name><type>STRING</type><readonly>true</readonly><default>Set Node IP</default></property>
+      <property><name>Refresh Interval (s)</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>60</maximum><default>2</default></property>
+      <property><name>Default Fade (ms)</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>60000</maximum><default>500</default></property>
+      <property><name>Default On Level</name><type>RANGED_INTEGER</type><minimum>1</minimum><maximum>100</maximum><default>100</default></property>
+      <property><name>White LED Kelvin (RGBW)</name><type>RANGED_INTEGER</type><minimum>1800</minimum><maximum>6500</maximum><default>3000</default></property>
+      <property><name>RGBW White Extraction</name><type>LIST</type><items><item>On</item><item>Off</item></items><default>On</default></property>
+      <property><name>Debug</name><type>LIST</type><items><item>Off</item><item>On</item></items><default>Off</default></property>
+      <property><name>Slot 1 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 1 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 2 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 2 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 3 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 3 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 4 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 4 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 5 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 5 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 6 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 6 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 7 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 7 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 8 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 8 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 9 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 9 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 10 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 10 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 11 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 11 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 12 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 12 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 13 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 13 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 14 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 14 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 15 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 15 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+      <property><name>Slot 16 Address</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>512</maximum><default>0</default></property>
+      <property><name>Slot 16 Type</name><type>LIST</type><items><item>Unused</item><item>Dimmer</item><item>RGB</item><item>RGBW</item></items><default>Unused</default></property>
+    </properties>
+
+    <commands>
+      <command>
+        <name>Set Channel</name>
+        <description>Set raw DMX channel PARAM1 to PARAM2 (0-255), bypassing the fixture slots</description>
+        <params>
+          <param><name>Channel</name><type>RANGED_INTEGER</type><minimum>1</minimum><maximum>512</maximum></param>
+          <param><name>Value</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>255</maximum></param>
+        </params>
+      </command>
+      <command>
+        <name>Set Fixture Colour</name>
+        <description>Set fixture PARAM1 to R PARAM2 G PARAM3 B PARAM4 (0-255) over PARAM5 ms (0 = every fixture)</description>
+        <params>
+          <param><name>Fixture</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>16</maximum></param>
+          <param><name>Red</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>255</maximum></param>
+          <param><name>Green</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>255</maximum></param>
+          <param><name>Blue</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>255</maximum></param>
+          <param><name>Fade ms</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>60000</maximum></param>
+        </params>
+      </command>
+      <command>
+        <name>Set Fixture Level</name>
+        <description>Set fixture PARAM1 to PARAM2 % over PARAM3 ms (0 = every fixture)</description>
+        <params>
+          <param><name>Fixture</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>16</maximum></param>
+          <param><name>Level</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>100</maximum></param>
+          <param><name>Fade ms</name><type>RANGED_INTEGER</type><minimum>0</minimum><maximum>60000</maximum></param>
+        </params>
+      </command>
+      <command>
+        <name>Blackout</name>
+        <description>Blackout PARAM1 (every DMX channel to 0 / restore the last look)</description>
+        <params><param><name>State</name><type>LIST</type><items><item>On</item><item>Off</item></items></param></params>
+      </command>
+      <command>
+        <name>Identify Fixture</name>
+        <description>Flash fixture PARAM1 white three times, then restore</description>
+        <params><param><name>Fixture</name><type>RANGED_INTEGER</type><minimum>1</minimum><maximum>16</maximum></param></params>
+      </command>
+    </commands>
+
+    <actions>
+      <action><name>Reconnect</name><command>LUA_ACTION</command><params><param><name>ACTION</name><type>STRING</type><value>Reconnect</value></param></params></action>
+      <action><name>Poll Node (ArtPoll)</name><command>LUA_ACTION</command><params><param><name>ACTION</name><type>STRING</type><value>Poll</value></param></params></action>
+      <action><name>Resend DMX Frame</name><command>LUA_ACTION</command><params><param><name>ACTION</name><type>STRING</type><value>Resend</value></param></params></action>
+      <action><name>All Fixtures Off</name><command>LUA_ACTION</command><params><param><name>ACTION</name><type>STRING</type><value>AllOff</value></param></params></action>
+    </actions>
+  </config>
+
+  <capabilities>
+    <dimmer>True</dimmer>
+    <supports_target>True</supports_target>
+    <supports_color>True</supports_color>
+    <supports_color_correlated_temperature>True</supports_color_correlated_temperature>
+    <color_correlated_temperature_min>1800</color_correlated_temperature_min>
+    <color_correlated_temperature_max>6500</color_correlated_temperature_max>
+    <supports_default_dim>True</supports_default_dim>
+    <click_rate_up>500</click_rate_up>
+    <click_rate_down>500</click_rate_down>
+    <has_button_events>False</has_button_events>
+    <has_leds>False</has_leds>
+  </capabilities>
+
+  <connections>
+    <connection>
+      <id>6001</id>
+      <facing>6</facing>
+      <connectionname>Art-Net Node (UDP 6454)</connectionname>
+      <type>4</type>
+      <consumer>True</consumer>
+      <audiosource>False</audiosource>
+      <videosource>False</videosource>
+      <linelevel>True</linelevel>
+      <classes>
+        <class>
+          <classname>UDP</classname>
+          <ports>
+            <port>
+              <number>6454</number>
+              <auto_connect>True</auto_connect>
+              <monitor_connection>False</monitor_connection>
+              <keep_connection>True</keep_connection>
+              <keep_alive>False</keep_alive>
+              <delimiter></delimiter>
+            </port>
+          </ports>
+        </class>
+      </classes>
+    </connection>
+    <connection><id>5001</id><facing>6</facing><connectionname>Fixture 1</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5002</id><facing>6</facing><connectionname>Fixture 2</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5003</id><facing>6</facing><connectionname>Fixture 3</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5004</id><facing>6</facing><connectionname>Fixture 4</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5005</id><facing>6</facing><connectionname>Fixture 5</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5006</id><facing>6</facing><connectionname>Fixture 6</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5007</id><facing>6</facing><connectionname>Fixture 7</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5008</id><facing>6</facing><connectionname>Fixture 8</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5009</id><facing>6</facing><connectionname>Fixture 9</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5010</id><facing>6</facing><connectionname>Fixture 10</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5011</id><facing>6</facing><connectionname>Fixture 11</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5012</id><facing>6</facing><connectionname>Fixture 12</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5013</id><facing>6</facing><connectionname>Fixture 13</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5014</id><facing>6</facing><connectionname>Fixture 14</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5015</id><facing>6</facing><connectionname>Fixture 15</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+    <connection><id>5016</id><facing>6</facing><connectionname>Fixture 16</connectionname><type>2</type><consumer>False</consumer><audiosource>False</audiosource><videosource>False</videosource><linelevel>True</linelevel><classes><class><classname>LIGHT_V2</classname></class></classes></connection>
+  </connections>
+
+  <proxies>
+    <proxy proxybindingid="5001" name="Fixture 1" primary="True">light_v2</proxy>
+    <proxy proxybindingid="5002" name="Fixture 2">light_v2</proxy>
+    <proxy proxybindingid="5003" name="Fixture 3">light_v2</proxy>
+    <proxy proxybindingid="5004" name="Fixture 4">light_v2</proxy>
+    <proxy proxybindingid="5005" name="Fixture 5">light_v2</proxy>
+    <proxy proxybindingid="5006" name="Fixture 6">light_v2</proxy>
+    <proxy proxybindingid="5007" name="Fixture 7">light_v2</proxy>
+    <proxy proxybindingid="5008" name="Fixture 8">light_v2</proxy>
+    <proxy proxybindingid="5009" name="Fixture 9">light_v2</proxy>
+    <proxy proxybindingid="5010" name="Fixture 10">light_v2</proxy>
+    <proxy proxybindingid="5011" name="Fixture 11">light_v2</proxy>
+    <proxy proxybindingid="5012" name="Fixture 12">light_v2</proxy>
+    <proxy proxybindingid="5013" name="Fixture 13">light_v2</proxy>
+    <proxy proxybindingid="5014" name="Fixture 14">light_v2</proxy>
+    <proxy proxybindingid="5015" name="Fixture 15">light_v2</proxy>
+    <proxy proxybindingid="5016" name="Fixture 16">light_v2</proxy>
+  </proxies>
+
+  <events>
+    <event><id>1</id><name>Node Found</name><description>The node answered ArtPoll (see Node Status)</description></event>
+    <event><id>2</id><name>Node Lost</name><description>The node stopped answering ArtPoll</description></event>
+    <event><id>3</id><name>Blackout On</name><description>Blackout engaged</description></event>
+    <event><id>4</id><name>Blackout Off</name><description>Blackout released</description></event>
+  </events>
+</devicedata>
