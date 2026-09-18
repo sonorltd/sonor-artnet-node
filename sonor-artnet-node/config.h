@@ -17,6 +17,8 @@
 #define BOARD_ESP32_W5500     4   // ESP32 DevKit + W5500 SPI module           (Ethernet, WiFi fallback)
 #define BOARD_WT32_ETH01      5   // WT32-ETH01 (ESP32 + LAN8720 on board)     (Ethernet, WiFi fallback)
 #define BOARD_ESP8266_WIFI    6   // Wemos D1 mini / NodeMCU (ESP8266)         (WiFi)
+#define BOARD_OLIMEX_POE      7   // Olimex ESP32-POE / ESP32-POE-ISO          (Ethernet + PoE 802.3af, WiFi fallback)
+#define BOARD_LILYGO_POE      8   // LilyGO T-Internet-POE                     (Ethernet + PoE 802.3af, WiFi fallback)
 
 // #define SONOR_BOARD BOARD_NANO_ENC28J60
 // #define SONOR_BOARD BOARD_NANO_W5500
@@ -24,6 +26,8 @@
 // #define SONOR_BOARD BOARD_ESP32_W5500
 // #define SONOR_BOARD BOARD_WT32_ETH01
 // #define SONOR_BOARD BOARD_ESP8266_WIFI
+// #define SONOR_BOARD BOARD_OLIMEX_POE
+// #define SONOR_BOARD BOARD_LILYGO_POE
 
 #ifndef SONOR_BOARD
   #if defined(ESP32)
@@ -76,6 +80,13 @@
   #define DMX_DE_PIN   4    // IO4 pad
   #define LED_PIN      -1   // no free on-board LED
   // LAN8720: addr 1, MDC 23, MDIO 18, power 16, clock in on GPIO0
+
+#elif SONOR_BOARD == BOARD_OLIMEX_POE || SONOR_BOARD == BOARD_LILYGO_POE
+  #define DMX_TX_PIN   33   // EXT header on both boards → MAX485 DI
+  #define DMX_DE_PIN   32   // → MAX485 DE+RE
+  #define LED_PIN      -1
+  // Olimex: LAN8710 addr 0, MDC 23, MDIO 18, power 12, clock out on GPIO17
+  // LilyGO: LAN8720 addr 0, MDC 23, MDIO 18, power 5,  clock out on GPIO17  (SD card on 2/13/14/15 — untouched)
 
 #elif SONOR_BOARD == BOARD_ESP8266_WIFI
   #define DMX_DE_PIN   5    // D1 (GPIO5) → MAX485 DE+RE

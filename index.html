@@ -30,7 +30,7 @@
   .board b{display:block;margin-bottom:3px}
   .board span{color:var(--mute);font-size:13px;display:block}
   .tag{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-top:8px;margin-right:4px}
-  .tag.eth{border-color:#2e7d4f;color:var(--ok)}.tag.wifi{border-color:#3a5f8a;color:#7fb4f0}.tag.web{border-color:#5a4d1a;color:var(--warn)}
+  .tag.eth{border-color:#2e7d4f;color:var(--ok)}.tag.poe{border-color:#7d5a2e;color:#f0b35c}.tag.wifi{border-color:#3a5f8a;color:#7fb4f0}.tag.web{border-color:#5a4d1a;color:var(--warn)}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
   .btn{display:inline-block;padding:10px 16px;border-radius:8px;background:var(--acc);color:#0b1014;font-weight:700;text-decoration:none;border:0;font-size:15px;cursor:pointer}
   .btn.ghost{background:var(--bg);color:var(--fg);border:1px solid var(--line)}
@@ -47,6 +47,10 @@
   footer{margin-top:48px;color:var(--mute);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
   esp-web-install-button{--esp-tools-button-color:#0b1014;--esp-tools-button-background-color:#4bb9d3;--esp-tools-button-border-radius:8px}
   .hide{display:none}
+  .tog{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer;font-size:14px}
+  .tog:has(input:checked){border-color:var(--acc);color:var(--acc)}
+  .lnk{display:inline-block;margin-right:8px;white-space:nowrap}
+  .lnk small{color:var(--mute)}
 </style>
 <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 <script src="web/avrgirl-arduino.js"></script>
@@ -56,11 +60,26 @@
 <header>
   <div class="eyebrow">SONOR · Studio</div>
   <h1>Art-Net Node</h1>
-  <div class="sub">Ethernet or WiFi → DMX512, in the shape of an Enttec ODE. Pick a board, flash it from this page, wire a MAX485 to an XLR, set the universe on the node's own web page. Firmware <span id="fw">v0.3.0</span>.</div>
+  <div class="sub">Ethernet or WiFi → DMX512, in the shape of an Enttec ODE. Pick a board, buy the bits, flash it from this page, wire a MAX485 to an XLR, set the universe on the node's own web page. Firmware <span id="fw">v0.3.0</span>.</div>
 </header>
 
 <h2><span class="n">1</span> Pick your board</h2>
 <div class="boards" id="boards"></div>
+
+<h2><span class="n">1b</span> Shopping list</h2>
+<div class="panel">
+  <div class="row" style="justify-content:space-between">
+    <div class="row">
+      <span style="color:var(--mute);font-size:13px">Power the node by:</span>
+      <label class="tog"><input type="radio" name="pw" value="nonpoe" checked> USB / 5 V supply</label>
+      <label class="tog"><input type="radio" name="pw" value="poe"> PoE from the switch</label>
+    </div>
+    <span id="partsTotal" style="color:var(--mute);font-size:13px"></span>
+  </div>
+  <div id="poeNote" class="note" style="margin:12px 0 0"></div>
+  <table id="parts" style="margin-top:12px"></table>
+  <p style="color:var(--mute);font-size:12px;margin:10px 0 0">Links are live listings found in Sept 2026 — Amazon and AliExpress listings churn, so each row also has a search link. Prices are rough UK street prices; AliExpress is a third of Amazon but 2–4 weeks away.</p>
+</div>
 
 <h2><span class="n">2</span> Flash it — from this page, no software</h2>
 <div class="panel" id="flash"></div>
@@ -89,6 +108,7 @@
   <tr><td>Nano + ENC28J60</td><td>1</td><td>Ethernet</td><td>Flash 93% full, 650 bytes of RAM headroom. It's at its ceiling — no further features.</td></tr>
   <tr><td>Nano + W5500</td><td>1</td><td>Ethernet</td><td>Hardware TCP/IP chip, more headroom than the ENC28J60. Also works with W5100 shields.</td></tr>
   <tr><td>ESP32 (any)</td><td>1 today</td><td>WiFi / Ethernet</td><td>Room for 2 universes on 2 UARTs — on the IDEAS list. mDNS: <code>sonor-node-xxxx.local</code>.</td></tr>
+  <tr><td>Olimex ESP32-POE / LilyGO T-Internet-POE</td><td>1 today</td><td>PoE Ethernet</td><td>Powered by the switch. Use a 3.3 V MAX3485 from 3V3 (or MAX485 from 5 V where the board has it).</td></tr>
   <tr><td>ESP8266</td><td>1</td><td>WiFi</td><td>Only a TX-only second UART (D4), so no RDM. Fine as a WiFi node.</td></tr>
 </table>
 <p>All boards: DMX refresh ~40 Hz continuous, last look held on loss of source. Art-Net 3/4 packets accepted (ArtPoll, ArtDmx), broadcast or unicast. WiFi is fine for a fixed install; for a show-critical line use a wired board.</p>
@@ -136,6 +156,20 @@ const BOARDS = [
    wireNotes:`<p>Feed the module <b>5 V</b> (its own regulator makes the 3.3 V). To flash: adapter TX → RX0, RX → TX0, GND, 5 V, and hold <b>IO0 to GND</b> while power is applied — then release. The adapter can stay wired for later re-flashes.</p>`,
    ide:`Boards Manager: <b>esp32</b> 3.x. Board <b>WT32-ETH01 Ethernet Module</b>. In <code>config.h</code> uncomment <code>#define SONOR_BOARD BOARD_WT32_ETH01</code>. Upload through the USB-serial adapter with IO0 grounded at power-up.`,
    setup:'ethwifi' },
+ { id:'olimex-esp32-poe', name:'Olimex ESP32-POE / POE-ISO — PoE Ethernet', tags:['eth','poe','wifi','web'],
+   blurb:'Proper PoE (802.3af) board, powered from the switch. The -ISO version is galvanically isolated — pick that one for anything sharing ground with an amp rack.',
+   mcu:{title:'Olimex ESP32-POE', pins:[['3V3 (EXT)','3V3'],['GND','GND'],['GPIO33','DI'],['GPIO32','DE']]},
+   modules:[], led:false, power:'3V3', max3485:true,
+   wireNotes:`<p>Runs off PoE — nothing else to power. Use a <b>MAX3485</b> (3.3 V) module from the 3V3 pin, or a MAX485 from the board's 5 V pin if your revision breaks one out. GPIO32/33 are on the EXT2 header. Flash over the micro-USB.</p>`,
+   ide:`Boards Manager: <b>esp32</b> 3.x. Board <b>OLIMEX ESP32-POE</b> (or ESP32-POE-ISO). In <code>config.h</code> uncomment <code>#define SONOR_BOARD BOARD_OLIMEX_POE</code>.`,
+   setup:'ethwifi' },
+ { id:'lilygo-t-internet-poe', name:'LilyGO T-Internet-POE — PoE Ethernet', tags:['eth','poe','wifi','web'],
+   blurb:'Cheaper PoE (802.3af) board. Flashes through the little USB downloader board it ships with.',
+   mcu:{title:'T-Internet-POE', pins:[['3V3','3V3'],['GND','GND'],['GPIO33','DI'],['GPIO32','DE']]},
+   modules:[], led:false, power:'3V3', max3485:true,
+   wireNotes:`<p>Runs off PoE. Use a <b>MAX3485</b> (3.3 V) module from 3V3, or a MAX485 from the header's 5 V pin. GPIO32/33 are free on the header (the SD slot uses 2/13/14/15 — untouched). Flash by clipping the LilyGO downloader onto the header; hold its BOOT if it doesn't auto-enter download mode.</p>`,
+   ide:`Boards Manager: <b>esp32</b> 3.x. Board <b>ESP32 Dev Module</b>. In <code>config.h</code> uncomment <code>#define SONOR_BOARD BOARD_LILYGO_POE</code>.`,
+   setup:'ethwifi' },
  { id:'esp8266-wifi', name:'Wemos D1 mini / NodeMCU (ESP8266) — WiFi', tags:['wifi','web'],
    blurb:'The £2 WiFi board. Perfectly good for a single wireless universe.',
    mcu:{title:'D1 mini / NodeMCU', pins:[['5V','5V'],['GND','GND'],['D4 (GPIO2, TX1)','DI'],['D1 (GPIO5)','DE']]},
@@ -151,11 +185,64 @@ const NET = {  // wire colours by net
   'U_TX':'#7fb4f0', 'U_RX':'#7fb4f0', 'U_BOOT':'#9aa4b2'
 };
 
+
+// ─────────────────────────── parts catalogue ───────────────────────────
+// amz / ali = a specific listing that existed when this was written; amzq / aliq = search fallbacks
+const AMZ = q => `https://www.amazon.co.uk/s?k=${encodeURIComponent(q)}`;
+const ALI = q => `https://www.aliexpress.com/w/wholesale-${encodeURIComponent(q).replace(/%20/g,'-')}.html`;
+const PARTS = {
+  nano:        { name:'Arduino Nano V3 (ATmega328P, CH340, soldered headers)', price:5, amz:'https://www.amazon.co.uk/dp/B08MQDYP78', amzq:AMZ('arduino nano v3 ch340 soldered'), aliq:ALI('nano v3 atmega328p ch340 soldered') },
+  enc28j60:    { name:'Nano ENC28J60 Ethernet shield (stacks on the Nano)', price:8, amz:'https://www.amazon.co.uk/dp/B07JL333FD', amzq:AMZ('nano enc28j60 ethernet shield'), ali:'https://www.aliexpress.com/item/32664329422.html', aliq:ALI('nano enc28j60 ethernet shield') },
+  w5500shield: { name:'Nano W5500 Ethernet shield (RobotDyn-style, stacks on the Nano)', price:12, amz:'https://www.amazon.co.uk/dp/B081DZCWS8', amzq:AMZ('nano w5500 ethernet shield'), aliq:ALI('nano w5500 ethernet shield') },
+  esp32:       { name:'ESP32 DevKit V1 (WROOM-32, 30-pin, CP2102)', price:7, amzq:AMZ('esp32 devkit v1 wroom-32 cp2102 30 pin'), ali:'https://www.aliexpress.com/item/1005005562548949.html', aliq:ALI('esp32 devkit v1 30pin cp2102') },
+  w5500:       { name:'W5500 SPI Ethernet module (USR-ES1 / mini, 3.3 V)', price:6, amz:'https://www.amazon.co.uk/dp/B08KXM8TKJ', amzq:AMZ('w5500 ethernet module spi'), ali:'https://www.aliexpress.com/item/1005009926638850.html', aliq:ALI('w5500 ethernet module spi') },
+  wt32:        { name:'WT32-ETH01 (ESP32 + LAN8720, RJ45 on board)', price:10, amz:'https://www.amazon.co.uk/dp/B0DKPCTTH6', amzq:AMZ('wt32-eth01'), ali:'https://www.aliexpress.com/item/1005003201245114.html', aliq:ALI('wt32-eth01') },
+  usbserial:   { name:'USB-serial adapter, CP2102 or CH340, 3.3 V logic (flashing the WT32-ETH01)', price:4, amzq:AMZ('cp2102 usb to ttl serial adapter 3.3v'), aliq:ALI('cp2102 usb ttl adapter') },
+  olimexpoe:   { name:'Olimex ESP32-POE-ISO (isolated; plain ESP32-POE is ~£5 less)', price:28, amz:'https://www.amazon.co.uk/dp/B08NWLHH8V', amzq:AMZ('olimex esp32-poe-iso'), ali:'https://www.aliexpress.com/item/4000188817036.html', aliq:ALI('olimex esp32 poe iso'), extra:'<a href="https://www.olimex.com/Products/IoT/ESP32/ESP32-POE-ISO/open-source-hardware">Olimex direct</a> is usually cheapest.' },
+  lilygopoe:   { name:'LilyGO T-Internet-POE (with downloader board)', price:22, amz:'https://www.amazon.co.uk/dp/B0BHYWB34W', amzq:AMZ('lilygo t-internet-poe'), ali:'https://www.aliexpress.com/item/4001122992446.html', aliq:ALI('lilygo t-internet-poe'), extra:'Get the "downloader suit" variant — the plain one has no USB.' },
+  d1mini:      { name:'Wemos D1 mini (ESP8266, CH340)', price:4, amzq:AMZ('wemos d1 mini esp8266'), ali:'https://www.aliexpress.com/item/32651747570.html', aliq:ALI('wemos d1 mini') },
+  max485:      { name:'MAX485 TTL→RS-485 module, 5 V (pack of 5)', price:5, amz:'https://www.amazon.co.uk/dp/B07DK4QG6H', amzq:AMZ('max485 module ttl rs485'), ali:'https://www.aliexpress.com/item/1005005737922222.html', aliq:ALI('max485 module') },
+  max3485:     { name:'MAX3485 TTL→RS-485 module, 3.3 V', price:3, amzq:AMZ('max3485 module ttl rs485 3.3v'), aliq:ALI('max3485 module 3.3v') },
+  xlr:         { name:'XLR 3-pin female chassis socket (Neutrik NC3FD-L-1 — or any D-size clone)', price:4, amz:'https://www.amazon.co.uk/dp/B000KMAPLW', amzq:AMZ('neutrik nc3fd-l-1'), aliq:ALI('xlr 3 pin female chassis socket') },
+  poesplit:    { name:'Active PoE splitter, 802.3af → 5 V 2.4 A (micro-USB or USB-C to suit the board)', price:10, amz:'https://www.amazon.co.uk/dp/B08HZFXZCN', amzq:AMZ('poe splitter 5v 2.4a micro usb 802.3af'), ali:'https://www.aliexpress.com/item/32819476796.html', aliq:ALI('poe splitter 5v 2.4a usb') },
+  psu:         { name:'5 V USB supply + cable (any phone charger, 1 A is plenty)', price:5, amzq:AMZ('5v 2a usb power supply uk plug'), aliq:ALI('5v 2a usb power adapter uk') },
+  dupont:      { name:'Dupont jumper leads, female-female, 10–20 cm', price:3, amzq:AMZ('dupont jumper wires female female 20cm'), aliq:ALI('dupont wire female female 20cm') },
+  led:         { name:'LED + 330 Ω resistor (optional activity light)', price:1, amzq:AMZ('5mm led resistor kit'), aliq:ALI('5mm led kit resistor') },
+  box:         { name:'Small ABS project box (Hammond 1591-style, ~100×60×25) — punch a D-hole for the XLR, slot for RJ45', price:6, amzq:AMZ('abs project box 100x60x25'), aliq:ALI('abs project enclosure 100x60x25') },
+};
+const BOM = {
+  'nano-enc28j60':        ['nano','enc28j60','max485','xlr','dupont','led','box','psu'],
+  'nano-w5500':           ['nano','w5500shield','max485','xlr','dupont','led','box','psu'],
+  'esp32-wifi':           ['esp32','max485','xlr','dupont','box','psu'],
+  'esp32-w5500':          ['esp32','w5500','max485','xlr','dupont','box','psu'],
+  'wt32-eth01':           ['wt32','usbserial','max485','xlr','dupont','box','psu'],
+  'olimex-esp32-poe':     ['olimexpoe','max3485','xlr','dupont','box'],
+  'lilygo-t-internet-poe':['lilygopoe','max3485','xlr','dupont','box'],
+  'esp8266-wifi':         ['d1mini','max485','xlr','dupont','box','psu'],
+};
+function renderParts(b) {
+  const poe = document.querySelector('input[name=pw]:checked').value === 'poe';
+  let keys = [...BOM[b.id]];
+  const native = b.tags.includes('poe'), wired = b.tags.includes('eth');
+  const note = document.getElementById('poeNote');
+  if (poe && native) { note.innerHTML = 'This board takes PoE (802.3af) straight from the switch — no supply, no splitter. One Cat5e run does data and power.'; note.className = 'note'; }
+  else if (poe && wired) { keys = keys.filter(k => k !== 'psu'); keys.splice(1, 0, 'poesplit'); note.innerHTML = 'This board isn\'t PoE itself, so add an <b>active PoE splitter</b>: switch → splitter → its RJ45 lead into the board, its 5 V USB lead into the board\'s USB. One cable to site, still. (Or pick the Olimex / LilyGO board above and skip the splitter.)'; note.className = 'note'; }
+  else if (poe) { note.innerHTML = 'PoE needs an Ethernet board — this one is WiFi only. Pick a wired board for PoE, or power it from USB.'; note.className = 'note warn'; }
+  else { note.innerHTML = native ? 'PoE board, but it can also run from its micro-USB / 5 V input if there\'s no PoE switch.' : 'Powered from any 5 V USB supply (or the USB port of whatever it\'s sitting next to).'; note.className = 'note'; }
+  const rows = keys.map(k => { const p = PARTS[k]; return `<tr><td>${p.name}${p.extra ? `<div style="color:var(--mute);font-size:12px">${p.extra}</div>` : ''}</td><td style="white-space:nowrap">~£${p.price}</td><td>
+    <span class="lnk">${p.amz ? `<a href="${p.amz}" target="_blank" rel="noopener">Amazon UK</a> <small>· <a href="${p.amzq}" target="_blank" rel="noopener">search</a></small>` : `<a href="${p.amzq}" target="_blank" rel="noopener">Amazon UK <small>(search)</small></a>`}</span>
+    <span class="lnk">${p.ali ? `<a href="${p.ali}" target="_blank" rel="noopener">AliExpress</a> <small>· <a href="${p.aliq}" target="_blank" rel="noopener">search</a></small>` : `<a href="${p.aliq}" target="_blank" rel="noopener">AliExpress <small>(search)</small></a>`}</span></td></tr>`; });
+  document.getElementById('parts').innerHTML = `<tr><th>Part</th><th>≈</th><th>Buy</th></tr>` + rows.join('');
+  const total = keys.reduce((a, k) => a + PARTS[k].price, 0);
+  document.getElementById('partsTotal').textContent = `≈ £${total} all-in from Amazon UK · roughly £${Math.round(total * 0.45)} from AliExpress`;
+}
+document.querySelectorAll('input[name=pw]').forEach(r => r.onchange = () => renderParts(BOARDS.find(x => x.id === (location.hash.slice(1) || BOARDS[0].id)) || BOARDS[0]));
+
 // ─────────────────────────── board picker ───────────────────────────
 const boardsEl = document.getElementById('boards');
 BOARDS.forEach(b => {
   const d = document.createElement('div'); d.className = 'board'; d.dataset.id = b.id;
-  d.innerHTML = `<b>${b.name}</b><span>${b.blurb}</span>` + b.tags.map(t => `<i class="tag ${t}">${{eth:'Ethernet',wifi:'WiFi',web:'Browser flash'}[t]}</i>`).join('');
+  d.innerHTML = `<b>${b.name}</b><span>${b.blurb}</span>` + b.tags.map(t => `<i class="tag ${t}">${{eth:'Ethernet',poe:'PoE',wifi:'WiFi',web:'Browser flash'}[t]}</i>`).join('');
   d.onclick = () => select(b.id);
   boardsEl.appendChild(d);
 });
@@ -165,7 +252,7 @@ function select(id) {
   document.querySelectorAll('.board').forEach(e => e.classList.toggle('sel', e.dataset.id === id));
   try { localStorage.setItem('sonor-artnet-board', id); } catch (e) {}
   history.replaceState(null, '', '#' + id);
-  renderFlash(b); renderSchematic(b); renderPins(b); renderSetup(b);
+  renderFlash(b); renderParts(b); renderSchematic(b); renderPins(b); renderSetup(b);
   document.getElementById('wireNotes').innerHTML = b.wireNotes;
   document.getElementById('ideNotes').innerHTML = `<p>${b.ide}</p><p>Or grab the whole thing: <a href="https://github.com/sonorltd/sonor-artnet-node/archive/refs/heads/main.zip">sketch + bundled libraries (zip)</a>.</p>`;
 }
@@ -249,9 +336,9 @@ function renderSchematic(b) {
   });
 
   // MAX485 block (middle)
-  const dx = 470, dy = 56, dw = 150, maxPins = [['VCC','5V'],['GND','GND'],['DI','DI'],['DE','DE'],['RE','DE2'],['RO',null]];
+  const dx = 470, dy = 56, dw = 150, maxPins = [['VCC', b.power === '3V3' ? '3V3' : '5V'],['GND','GND'],['DI','DI'],['DE','DE'],['RE','DE2'],['RO',null]];
   const dh = 34 + maxPins.length * PIN;
-  box(dx, dy, dw, dh, 'MAX485 module');
+  box(dx, dy, dw, dh, b.max3485 ? 'MAX3485 module (3.3 V)' : 'MAX485 module');
   const maxPin = {};
   maxPins.forEach(([label, net], i) => {
     const y = dy + 36 + i * PIN + PIN / 2;
@@ -288,11 +375,11 @@ function renderSchematic(b) {
   wire([[dx + dw + 14, by], [xb + 16, by], [xb + 16, xp.B[1]], xp.B], 'B'); dot(xb + 16, by, 'B'); dot(xb + 16, xp.B[1], 'B');
 
   // buses between MCU and MAX485: one column per net
-  const busX0 = mx + mw + 40, order = ['5V','GND','DI','DE'];
+  const busX0 = mx + mw + 40, order = [b.power === '3V3' ? '3V3' : '5V','GND','DI','DE'];
   let bus = {};
   order.forEach((net, i) => bus[net] = busX0 + i * 16);
   const routeTo = (net, dst) => { const s = mcuPin[net]; if (!s || !dst) return; wire([s, [bus[net], s[1]], [bus[net], dst[1]], dst], net); dot(bus[net], s[1], net); dot(bus[net], dst[1], net); };
-  routeTo('5V', maxPin['5V']); routeTo('GND', maxPin.GND); routeTo('DI', maxPin.DI); routeTo('DE', maxPin.DE);
+  routeTo(b.power === '3V3' ? '3V3' : '5V', maxPin[b.power === '3V3' ? '3V3' : '5V']); routeTo('GND', maxPin.GND); routeTo('DI', maxPin.DI); routeTo('DE', maxPin.DE);
   // GND onward to XLR pin 1 — over the top of the blocks so it never crosses a module
   const topY = my - 16;
   wire([[bus.GND, maxPin.GND[1]], [bus.GND, topY], [xb + 32, topY], [xb + 32, xp.GND[1]], xp.GND], 'GND');
@@ -338,14 +425,14 @@ function renderSchematic(b) {
   });
   const H = Math.max(ey, gy + 40, my + mh + 100, xy + xh + 90);
   // legend
-  const legendNets = [...new Set(['5V','GND','DI','DE', ...(b.led ? ['LED'] : []), 'A','B', ...b.modules.flatMap(m => m.pins.map(p => p[1]))])].filter(n => NET[n]);
+  const legendNets = [...new Set([b.power === '3V3' ? '3V3' : '5V','GND','DI','DE', ...(b.led ? ['LED'] : []), 'A','B', ...b.modules.flatMap(m => m.pins.map(p => p[1]))])].filter(n => NET[n]);
   let lx = 30; legendNets.forEach(n => { S.push(`<line x1="${lx}" y1="${H - 14}" x2="${lx + 18}" y2="${H - 14}" stroke="${NET[n]}" stroke-width="3"/>`); txt(lx + 24, H - 14, n.replace('U_', 'USB-'), {fill:'#8a94a0', size:10}); lx += 24 + n.length * 7 + 22; });
   document.getElementById('schem').innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring schematic for ${b.name}">${S.join('')}</svg>`;
 }
 
 function renderPins(b) {
   const rows = [];
-  const label = {'5V':'MAX485 VCC (5 V)', 'GND':'MAX485 GND · XLR pin 1', 'DI':'MAX485 DI (DMX data)', 'DE':'MAX485 DE + RE tied (driver enable)', 'LED':'330 Ω → LED → GND (activity)', '3V3':'W5500 VCC (3.3 V)', 'SCK':'W5500 SCK', 'MISO':'W5500 MISO', 'MOSI':'W5500 MOSI', 'CS':'W5500 CS', 'INT':'W5500 INT', 'U_TX':'USB-serial TX', 'U_RX':'USB-serial RX', 'U_BOOT':'to GND during power-up = download mode'};
+  const label = {'5V':'MAX485 VCC (5 V)', '3V3': b.max3485 ? 'MAX3485 VCC (3.3 V)' : 'W5500 VCC (3.3 V)', 'GND':'MAX485 GND · XLR pin 1', 'DI':'MAX485 DI (DMX data)', 'DE':'MAX485 DE + RE tied (driver enable)', 'LED':'330 Ω → LED → GND (activity)', 'SCK':'W5500 SCK', 'MISO':'W5500 MISO', 'MOSI':'W5500 MOSI', 'CS':'W5500 CS', 'INT':'W5500 INT', 'U_TX':'USB-serial TX', 'U_RX':'USB-serial RX', 'U_BOOT':'to GND during power-up = download mode'};
   b.mcu.pins.forEach(([p, net]) => rows.push(`<tr><td><code>${p}</code></td><td>${label[net] || net}</td></tr>`));
   rows.push(`<tr><td>MAX485 <code>A</code> / <code>B</code></td><td>XLR pin 3 (Data +) / pin 2 (Data −)</td></tr>`);
   document.getElementById('pinTable').innerHTML = `<tr><th>${b.mcu.title} pin</th><th>Goes to</th></tr>` + rows.join('');

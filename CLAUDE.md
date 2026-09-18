@@ -1,7 +1,7 @@
 # STUDIO - ArtNet Node (v0.3.0)
 
 > Current version: 0.3.0 · Repo: `sonor-artnet-node` · Pages: https://sonorltd.github.io/sonor-artnet-node/ (board picker, browser flashing, wiring schematics).
-> Type: side-project / firmware (STUDIO class). Six board variants → one universe of DMX out. Enttec ODE stand-in.
+> Type: side-project / firmware (STUDIO class). Eight board variants (incl. two PoE) → one universe of DMX out. Enttec ODE stand-in.
 
 Art-Net → DMX512 node: ArtPoll/ArtPollReply discovery, ArtDmx on UDP 6454, MAX485 line driver, self-hosted config
 page (Net/Sub-Net/Universe, DHCP/static, WiFi creds), settings in EEPROM. **Read `README.md` first.**
@@ -11,15 +11,15 @@ page (Net/Sub-Net/Universe, DHCP/static, WiFi creds), settings in EEPROM. **Read
   Registered in `workspace-apps.tsv` as `type=side-project, isolation=island-ok`.
 
 ## Layout
-- `sonor-artnet-node/` — the sketch. `config.h` = board select (`SONOR_BOARD` 1–6), factory defaults, pin maps.
+- `sonor-artnet-node/` — the sketch. `config.h` = board select (`SONOR_BOARD` 1–8; 7 = Olimex ESP32-POE, 8 = LilyGO T-Internet-POE, both LAN8720-class with clock out on GPIO17, DMX on 33/32), factory defaults, pin maps.
   `avr_node.h` = ATmega328P build (byte-counted; ENC28J60 variant is 93 % flash). `esp_node.h` = ESP32/ESP8266 build.
 - `sonor-artnet-node/src/` — vendored libs. **Every .cpp/.c under src/ is guarded** with `#include "…/config.h"` +
   `#if SONOR_BOARD == …` because the IDE compiles all of src/ for every target. `src/Ethernet/utility/w5100.cpp`
   includes `"../Ethernet.h"` (relative) so a globally installed Ethernet lib is never pulled in.
   EthernetENC patch: stray `serialPrint()` removed from `Ethernet.cpp` (dragged in HardwareSerial → clashed with
   DMXSerial's USART vectors); `UIP_CONF_MAX_CONNECTIONS` 4→1, `UIP_UDP_BACKLOG` 2→4.
-- `build.sh` — arduino-cli, all six variants → `firmware/<board>/` (hex for AVR; bootloader/partitions/boot_app0/firmware + `manifest.json` for ESP32; firmware + manifest for ESP8266). `firmware/VERSION` is read by the page.
-- `index.html` — Pages site. `BOARDS[]` drives the picker, flash panel, pin table, setup text and the SVG schematic
+- `build.sh` — arduino-cli, all eight variants → `firmware/<board>/` (hex for AVR; bootloader/partitions/boot_app0/firmware + `manifest.json` for ESP32; firmware + manifest for ESP8266). `firmware/VERSION` is read by the page.
+- `index.html` — Pages site. `BOARDS[]` drives the picker, flash panel, pin table, setup text and the SVG schematic; `PARTS`/`BOM` drive the shopping list (PoE toggle adds an 802.3af→5 V splitter to non-PoE wired boards; links are dated listings + search fallbacks)
   (`renderSchematic()` — generic: MCU block, MAX485, XLR block, optional modules, per-net bus columns). AVR flashing =
   `web/avrgirl-arduino.js` (Web Serial STK500v1; board `nano` = 57600 old bootloader, `nano (new bootloader)` = 115200,
   `uno`). ESP flashing = `<esp-web-install-button>` from unpkg esp-web-tools@10 + same-origin manifests.

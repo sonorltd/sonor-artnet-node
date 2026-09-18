@@ -10,8 +10,14 @@
   #include <WebServer.h>
   #include <ESPmDNS.h>
   #include "driver/uart.h"
-  #if SONOR_BOARD == BOARD_ESP32_W5500 || SONOR_BOARD == BOARD_WT32_ETH01
+  #if SONOR_BOARD == BOARD_ESP32_W5500 || SONOR_BOARD == BOARD_WT32_ETH01 || SONOR_BOARD == BOARD_OLIMEX_POE || SONOR_BOARD == BOARD_LILYGO_POE
     #define HAS_ETH 1
+    #undef ETH_PHY_TYPE
+    #undef ETH_PHY_ADDR
+    #undef ETH_PHY_MDC
+    #undef ETH_PHY_MDIO
+    #undef ETH_PHY_POWER
+    #undef ETH_CLK_MODE
     #if SONOR_BOARD == BOARD_WT32_ETH01
       #define ETH_PHY_TYPE  ETH_PHY_LAN8720
       #define ETH_PHY_ADDR  1
@@ -19,6 +25,20 @@
       #define ETH_PHY_MDIO  18
       #define ETH_PHY_POWER 16
       #define ETH_CLK_MODE  ETH_CLOCK_GPIO0_IN
+    #elif SONOR_BOARD == BOARD_OLIMEX_POE
+      #define ETH_PHY_TYPE  ETH_PHY_LAN8720
+      #define ETH_PHY_ADDR  0
+      #define ETH_PHY_MDC   23
+      #define ETH_PHY_MDIO  18
+      #define ETH_PHY_POWER 12
+      #define ETH_CLK_MODE  ETH_CLOCK_GPIO17_OUT
+    #elif SONOR_BOARD == BOARD_LILYGO_POE
+      #define ETH_PHY_TYPE  ETH_PHY_LAN8720
+      #define ETH_PHY_ADDR  0
+      #define ETH_PHY_MDC   23
+      #define ETH_PHY_MDIO  18
+      #define ETH_PHY_POWER 5
+      #define ETH_CLK_MODE  ETH_CLOCK_GPIO17_OUT
     #endif
     #include <ETH.h>
   #endif
@@ -239,6 +259,12 @@ Source: github.com/sonorltd/sonor-artnet-node</div></div></body></html>)HTML";
 #elif SONOR_BOARD == BOARD_WT32_ETH01
   #define BOARD_NAME "WT32-ETH01 (Ethernet, WiFi fallback)"
   #define WIRING "WT32-ETH01       MAX485 module        XLR (DMX out)\n5V ------------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nIO17 (TXD2) ---> DI\nIO4 -----------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nRJ45 on board. Power the module with 5V (not 3.3V)."
+#elif SONOR_BOARD == BOARD_OLIMEX_POE
+  #define BOARD_NAME "Olimex ESP32-POE (PoE Ethernet, WiFi fallback)"
+  #define WIRING "ESP32-POE        MAX485 module        XLR (DMX out)\n5V (EXT) ------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nGPIO33 --------> DI\nGPIO32 --------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nPowered by PoE (802.3af) from the switch - no PSU. USB for flashing."
+#elif SONOR_BOARD == BOARD_LILYGO_POE
+  #define BOARD_NAME "LilyGO T-Internet-POE (PoE Ethernet, WiFi fallback)"
+  #define WIRING "T-Internet-POE   MAX485 module        XLR (DMX out)\n5V ------------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nGPIO33 --------> DI\nGPIO32 --------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nPowered by PoE (802.3af) from the switch - no PSU. Flash via the LilyGO USB downloader board."
 #else
   #define BOARD_NAME "ESP8266 (WiFi)"
   #define WIRING "D1 mini / NodeMCU   MAX485 module     XLR (DMX out)\n5V ---------------> VCC\nGND --------------> GND ----------->  pin 1 (shield)\nD4 (GPIO2, TX1) --> DI\nD1 (GPIO5) -------> DE + RE (tied)\n                    A   ----------->  pin 3 (Data+)\n                    B   ----------->  pin 2 (Data-)\nD4 doubles as the on-board LED - it flickers with DMX, that's normal."

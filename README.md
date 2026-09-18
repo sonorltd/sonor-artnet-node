@@ -18,8 +18,12 @@ notes are on the same page.
 | 4 | ESP32 DevKit + **W5500** SPI module | Ethernet, WiFi fallback | GPIO17 | GPIO4 | GPIO2 | W5500 on VSPI: SCK 18 / MISO 19 / MOSI 23 / CS 5 / INT 35, 3.3 V. |
 | 5 | **WT32-ETH01** (ESP32 + LAN8720) | Ethernet, WiFi fallback | IO17 | IO4 | — | RJ45 on board; flash via USB-serial with IO0 → GND at power-up. |
 | 6 | Wemos D1 mini / NodeMCU (**ESP8266**) | WiFi | D4 (GPIO2) | D1 (GPIO5) | — | Hotspot for first-time setup. |
+| 7 | **Olimex ESP32-POE / POE-ISO** | PoE Ethernet, WiFi fallback | GPIO33 | GPIO32 | — | 802.3af from the switch. LAN8710 addr 0, power 12, clock out GPIO17. Use a 3.3 V MAX3485. |
+| 8 | **LilyGO T-Internet-POE** | PoE Ethernet, WiFi fallback | GPIO33 | GPIO32 | — | 802.3af from the switch. LAN8720 addr 0, power 5, clock out GPIO17. Use a 3.3 V MAX3485. |
 
-All boards: MAX485 VCC → 5 V, GND → GND, A → XLR pin 3, B → XLR pin 2, GND → XLR pin 1. DE and RE tied together.
+All boards: MAX485 VCC → 5 V (MAX3485 → 3V3 on the PoE boards), GND → GND, A → XLR pin 3, B → XLR pin 2, GND → XLR pin 1. DE and RE tied together.
+
+**Shopping list:** the Pages site has a per-board parts list with a PoE / non-PoE toggle and Amazon UK + AliExpress links. Non-PoE Ethernet boards get PoE via a £10 active 802.3af → 5 V USB splitter; the Olimex and LilyGO boards take it natively.
 
 ## Config page (on the node)
 
@@ -59,7 +63,7 @@ defaults (1 on AVR, 3 on ESP32, 6 on ESP8266) — uncomment the matching `#defin
 package. Do **not** install EthernetENC from Library Manager alongside this: the bundled copy carries a
 one-line patch the stock library needs to link with DMXSerial.
 
-Command line: `bash build.sh` (or `bash build.sh 3` for one board) regenerates `firmware/`.
+Command line: `bash build.sh` (or `bash build.sh 3` for one board) regenerates `firmware/` for all eight variants.
 
 ## Prebuilt hex / bin without the browser
 

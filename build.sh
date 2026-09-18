@@ -23,6 +23,8 @@ BOARDS=(
   "4|esp32-w5500|esp32:esp32:esp32|ESP32"
   "5|wt32-eth01|esp32:esp32:wt32-eth01|ESP32"
   "6|esp8266-wifi|esp8266:esp8266:d1_mini|ESP8266"
+  "7|olimex-esp32-poe|esp32:esp32:esp32-poe|ESP32"
+  "8|lilygo-t-internet-poe|esp32:esp32:esp32|ESP32"
 )
 ONLY="${1:-}"
 FW=$(grep -o 'FW_VERSION *"[^"]*"' sonor-artnet-node/config.h | cut -d'"' -f2)
