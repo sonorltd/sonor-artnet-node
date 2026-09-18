@@ -1,6 +1,6 @@
-# STUDIO - ArtNet Node (v0.3.0)
+# STUDIO - ArtNet Node (v0.3.1)
 
-> Current version: 0.3.0 · Repo: `sonor-artnet-node` · Pages: https://sonorltd.github.io/sonor-artnet-node/ (board picker, browser flashing, wiring schematics).
+> Current version: 0.3.1 · Repo: `sonor-artnet-node` · Pages: https://sonorltd.github.io/sonor-artnet-node/ (board picker, browser flashing, wiring schematics).
 > Type: side-project / firmware (STUDIO class). Eight board variants (incl. two PoE) → one universe of DMX out. Enttec ODE stand-in.
 
 Art-Net → DMX512 node: ArtPoll/ArtPollReply discovery, ArtDmx on UDP 6454, MAX485 line driver, self-hosted config
@@ -19,7 +19,9 @@ page (Net/Sub-Net/Universe, DHCP/static, WiFi creds), settings in EEPROM. **Read
   EthernetENC patch: stray `serialPrint()` removed from `Ethernet.cpp` (dragged in HardwareSerial → clashed with
   DMXSerial's USART vectors); `UIP_CONF_MAX_CONNECTIONS` 4→1, `UIP_UDP_BACKLOG` 2→4.
 - `build.sh` — arduino-cli, all eight variants → `firmware/<board>/` (hex for AVR; bootloader/partitions/boot_app0/firmware + `manifest.json` for ESP32; firmware + manifest for ESP8266). `firmware/VERSION` is read by the page.
-- `index.html` — Pages site. `BOARDS[]` drives the picker, flash panel, pin table, setup text and the SVG schematic; `PARTS`/`BOM` drive the shopping list (PoE toggle adds an 802.3af→5 V splitter to non-PoE wired boards; links are dated listings + search fallbacks)
+- **Theme**: Sonor luxury theme lifted from APP - Lighting Design (bg #090807/#171410/#221e17, cream #F4F1EC, gold #ad9978/#c8b48e, amber #f5d05c, DM Sans; Gilroy deliberately NOT shipped — licensed font, keep it off a public repo). Logo = the house mark from `data/sonor-header.js` WORDMARK_SVG paths 1–3, inline SVG; `web/favicon.svg` gold variant.
+- `web/node-page.html` — the ONE source for the on-node page (ESP builds): `build.sh` turns it into `sonor-artnet-node/esp_page.h` (PROGMEM raw string, tokens `%NET%` etc. filled in `esp_node.h`), and the Pages site's *Node web page preview* tab fetches it and fills sample values into an iframe. Edit the template, run `build.sh`, commit both. AVR page is a separate, byte-counted string in `avr_node.h` (text wordmark, same palette, no SVG — flash is at 94 %).
+- `index.html` — Pages site with three tabs (Build & flash / Node web page preview / Limits & notes). `BOARDS[]` drives the picker, flash panel, pin table, setup text and the SVG schematic; `PARTS`/`BOM` drive the shopping list (PoE toggle adds an 802.3af→5 V splitter to non-PoE wired boards; links are dated listings + search fallbacks)
   (`renderSchematic()` — generic: MCU block, MAX485, XLR block, optional modules, per-net bus columns). AVR flashing =
   `web/avrgirl-arduino.js` (Web Serial STK500v1; board `nano` = 57600 old bootloader, `nano (new bootloader)` = 115200,
   `uno`). ESP flashing = `<esp-web-install-button>` from unpkg esp-web-tools@10 + same-origin manifests.

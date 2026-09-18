@@ -39,7 +39,7 @@
   #endif
 #endif
 
-#define FW_VERSION  "0.3.0"
+#define FW_VERSION  "0.3.1"
 
 // ───────────────────────── FACTORY DEFAULTS ─────────────────────────
 // Everything here can be changed later from the node's own web page.

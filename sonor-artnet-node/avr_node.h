@@ -108,14 +108,15 @@ const char HTML_HEAD[] PROGMEM =
   "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"
   "<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
   "<title>SONOR Art-Net Node</title><style>"
-  "body{font:15px/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:#111418;color:#e6e8eb;margin:0;padding:20px}"
-  "h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:#8a94a0;margin:24px 0 8px}"
-  ".c{max-width:560px;margin:auto}.k{color:#8a94a0}label{display:block;margin:10px 0 3px;color:#8a94a0;font-size:13px}"
-  "input,select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #2b323a;border-radius:6px;background:#1a1f25;color:#e6e8eb;font-size:15px}"
-  ".r{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}button{margin-top:16px;padding:10px 18px;border:0;border-radius:6px;background:#4bb9d3;color:#0b1014;font-weight:600;font-size:15px}"
-  "pre{background:#1a1f25;border:1px solid #2b323a;border-radius:6px;padding:12px;font-size:12px;overflow:auto}"
-  ".ok{background:#1e3a2a;border:1px solid #2e7d4f;padding:10px 14px;border-radius:6px;margin-bottom:16px}"
-  "</style></head><body><div class=c><h1>SONOR Art-Net Node</h1><div class=k>Ethernet &rarr; DMX512 &middot; firmware v" FW_VERSION "</div>";
+  "body{font:15px/1.5 'DM Sans',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:#0d0b07;color:#F4F1EC;margin:0;padding:20px}"
+  ".w{font-weight:800;letter-spacing:.22em;text-transform:uppercase;font-size:14px}.w i{font-style:normal;color:#8f8574;letter-spacing:.3em;font-size:11px;margin-left:12px;padding-left:12px;border-left:1px solid #3c3330}"
+  "h1{font-size:24px;margin:18px 0 2px;color:#c8b48e}h2{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#ad9978;margin:22px 0 8px}"
+  ".c{max-width:560px;margin:auto}.k{color:#8f8574}label{display:block;margin:10px 0 4px;color:#8f8574;font-size:10px;letter-spacing:.09em;text-transform:uppercase}"
+  "input,select{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #2a2520;border-radius:7px;background:#221e17;color:#F4F1EC;font-size:15px}"
+  ".r{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}button{margin-top:16px;padding:12px 24px;border:0;border-radius:2px;background:#ad9978;color:#151310;font-weight:800;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase}"
+  "pre{background:#171410;border:1px solid #2a2520;border-radius:8px;padding:12px;font-size:12px;overflow:auto}"
+  ".ok{background:#1b2a1e;border:1px solid #2e7d4f;color:#7fc98a;padding:10px 14px;border-radius:8px;margin-bottom:16px}"
+  "</style></head><body><div class=c><div class=w>Sonor<i>Art-Net Node</i></div><h1>Art-Net Node</h1><div class=k>Ethernet &rarr; DMX512 &middot; firmware v" FW_VERSION "</div>";
 
 const char HTML_FORM[] PROGMEM =
   "<h2>Art-Net</h2><form action=/save><div class=r>"

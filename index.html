@@ -5,62 +5,110 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SONOR Art-Net Node</title>
 <meta name="description" content="Ethernet / WiFi → DMX512 Art-Net node for Arduino Nano, ESP32 and ESP8266. Flash from the browser, wiring diagrams, setup.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="icon" href="web/favicon.svg" type="image/svg+xml">
 <style>
-  :root{--bg:#111418;--panel:#1a1f25;--line:#2b323a;--fg:#e6e8eb;--mute:#8a94a0;--acc:#4bb9d3;--ok:#46c37b;--warn:#f5d05c;--bad:#e5484d}
+  /* Sonor luxury theme — lifted from APP - Lighting Design (dark + gold + lighting amber) */
+  :root{--bg0:#090807;--bg1:#111010;--bg2:#171410;--bg3:#221e17;--cream:#F4F1EC;--fg:#F4F1EC;--txt2:#b0a898;--muted:#8f8574;--dim:#3c3330;
+        --gold:#ad9978;--gold2:#c8b48e;--amb:#f5d05c;--brd:rgba(173,153,120,.18);--brd2:rgba(255,255,255,.06);--brdA:rgba(245,208,92,.24);
+        --ok:#7fc98a;--warn:#e0a05a;--bad:#e5484d;--acc:var(--gold);--panel:var(--bg2);--line:var(--brd2);--bg:var(--bg0)}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
-  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 64px}
-  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:8px}
-  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);font-weight:700}
-  h1{font-size:30px;margin:6px 0 4px;letter-spacing:-.01em}
-  .sub{color:var(--mute)}
-  h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:36px 0 12px;display:flex;align-items:center;gap:10px}
-  h2 .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#0b1014;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  html{scroll-behavior:smooth}
+  body{margin:0;color:var(--cream);font:15px/1.6 'DM Sans',system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;
+       background:radial-gradient(1100px 500px at 50% -160px,rgba(245,208,92,.16),transparent 62%),radial-gradient(900px 520px at 108% 8%,rgba(245,208,92,.09),transparent 55%),linear-gradient(#0d0b07,#090807);min-height:100vh}
+  .site-hdr{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:20px;height:64px;padding:0 clamp(18px,5vw,48px);background:rgba(9,8,7,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd2)}
+  .site-hdr .wm{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--cream)}
+  .site-hdr .wm svg{height:30px;width:auto;display:block}
+  .site-hdr .wm b{font-weight:800;font-size:15px;letter-spacing:.22em;text-transform:uppercase;line-height:1}
+  .site-hdr .hdr-tag{font-size:.9rem;letter-spacing:.34em;color:rgba(244,241,236,.5);text-transform:uppercase;font-weight:600;margin-left:6px;padding-left:16px;border-left:1px solid rgba(255,255,255,.14)}
+  .site-hdr .ver{margin-left:auto;font-size:10px;letter-spacing:.16em;color:rgba(200,180,142,.55);font-weight:700}
+  .tabs{display:flex;gap:2px;justify-content:center;padding:14px clamp(16px,3vw,30px);border-bottom:1px solid var(--brd);flex-wrap:wrap}
+  .tab{display:flex;align-items:center;gap:8px;padding:7px 17px;border-radius:22px;font-size:12px;letter-spacing:.02em;color:var(--muted);cursor:pointer;border:1px solid transparent;transition:.2s;background:none;font-family:inherit}
+  .tab.on{color:var(--amb);border-color:rgba(245,208,92,.35);background:linear-gradient(180deg,rgba(245,208,92,.16),rgba(173,153,120,.10));box-shadow:0 6px 20px -12px rgba(245,208,92,.55)}
+  .tab .pn{width:19px;height:19px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+  .tab.on .pn{background:linear-gradient(140deg,var(--gold2),var(--gold));color:#120c06;border-color:transparent}
+  .view{display:none}.view.on{display:block}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 64px}
+  .eyebrow{display:inline-flex;align-items:center;gap:.8rem;font-size:.67rem;letter-spacing:.3em;text-transform:uppercase;color:var(--txt2);margin-bottom:.9rem}
+  .eyebrow::before{content:'';width:26px;height:1px;background:var(--gold)}
+  h1{font-weight:800;font-size:clamp(2.2rem,5vw,3.4rem);line-height:.98;letter-spacing:-.03em;margin:0 0 .8rem;background:linear-gradient(90deg,var(--cream),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--txt2);max-width:720px;line-height:1.7}
+  header.lead{padding-bottom:22px;margin-bottom:4px;position:relative}
+  header.lead::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,rgba(173,153,120,.5),rgba(245,208,92,.4),transparent)}
+  h2{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:38px 0 12px;display:flex;align-items:center;gap:10px}
+  h2::before{content:'';width:14px;height:1.5px;background:linear-gradient(90deg,var(--gold),var(--amb));border-radius:2px}
+  h2 .n{display:inline-flex;width:20px;height:20px;border-radius:50%;background:linear-gradient(140deg,var(--gold2),var(--gold));color:#120c06;align-items:center;justify-content:center;font-size:10px;font-weight:800}
   p{margin:8px 0}
-  a{color:var(--acc)}
-  code{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:13px}
-  pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:12.5px;overflow:auto;line-height:1.45;margin:8px 0}
+  a{color:var(--gold2)}
+  code{background:var(--bg3);border:1px solid var(--brd2);border-radius:4px;padding:1px 5px;font-size:13px;font-family:'DM Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--cream)}
+  pre{background:var(--bg3);border:1px solid var(--brd2);border-radius:8px;padding:14px;font:12.5px/1.45 'DM Mono',ui-monospace,Menlo,Consolas,monospace;overflow:auto;margin:8px 0}
   table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--brd2);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.09em}
   .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-  .board{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;position:relative}
-  .board:hover{border-color:#3a4450}
-  .board.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
-  .board b{display:block;margin-bottom:3px}
-  .board span{color:var(--mute);font-size:13px;display:block}
-  .tag{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--mute);margin-top:8px;margin-right:4px}
-  .tag.eth{border-color:#2e7d4f;color:var(--ok)}.tag.poe{border-color:#7d5a2e;color:#f0b35c}.tag.wifi{border-color:#3a5f8a;color:#7fb4f0}.tag.web{border-color:#5a4d1a;color:var(--warn)}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
-  .btn{display:inline-block;padding:10px 16px;border-radius:8px;background:var(--acc);color:#0b1014;font-weight:700;text-decoration:none;border:0;font-size:15px;cursor:pointer}
-  .btn.ghost{background:var(--bg);color:var(--fg);border:1px solid var(--line)}
-  .btn[disabled]{opacity:.4;cursor:not-allowed}
+  .board{background:var(--bg3);border:1.5px solid var(--brd2);border-radius:11px;padding:14px 16px;cursor:pointer;position:relative;transition:.16s}
+  .board:hover{border-color:var(--brdA);box-shadow:0 0 18px -8px rgba(245,208,92,.5)}
+  .board.sel{border-color:var(--gold);background:linear-gradient(180deg,rgba(173,153,120,.14),rgba(245,208,92,.06));box-shadow:0 0 0 1px rgba(173,153,120,.4)}
+  .board b{display:block;margin-bottom:3px;font-weight:600}
+  .board span{color:var(--muted);font-size:13px;display:block;line-height:1.5}
+  .tag{display:inline-block;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid var(--brd);color:var(--gold2);margin-top:8px;margin-right:4px}
+  .tag.eth{border-color:rgba(90,173,96,.35);color:var(--ok)}.tag.poe{border-color:rgba(245,208,92,.35);color:var(--amb)}.tag.wifi{border-color:rgba(127,180,240,.35);color:#7fb4f0}.tag.web{border-color:var(--brd);color:var(--gold2)}
+  .panel{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg2);border:1px solid var(--brd2);border-radius:14px;padding:19px 21px;margin:12px 0;box-shadow:0 22px 50px -34px rgba(0,0,0,.9)}
+  .btn{display:inline-block;padding:13px 26px;border-radius:2px;border:1px solid transparent;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;cursor:pointer;text-decoration:none;color:#151310;background:linear-gradient(135deg,var(--gold2),var(--gold));box-shadow:0 14px 34px -14px rgba(173,153,120,.7),inset 0 1px 0 rgba(255,255,255,.25);transition:.2s}
+  .btn:hover{filter:brightness(1.05);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--gold2);border-color:rgba(173,153,120,.42);box-shadow:none;font-weight:600}
+  .btn.ghost:hover{background:rgba(245,208,92,.08);border-color:var(--gold2)}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
   .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font-size:14px}
-  .log{font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:#0b0e12;border:1px solid var(--line);border-radius:8px;padding:10px;height:150px;overflow:auto;white-space:pre-wrap;margin-top:12px;color:#b7c0ca}
-  .bar{height:6px;background:#0b0e12;border-radius:3px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
-  .note{border-left:3px solid var(--acc);padding:8px 14px;background:var(--panel);border-radius:0 8px 8px 0;margin:12px 0}
+  select{padding:9px 11px;border:1px solid var(--brd2);border-radius:7px;background:var(--bg3);color:var(--cream);font-size:13.5px;font-family:inherit}
+  .log{font:12px/1.5 'DM Mono',ui-monospace,Menlo,Consolas,monospace;background:var(--bg0);border:1px solid var(--brd2);border-radius:8px;padding:10px;height:150px;overflow:auto;white-space:pre-wrap;margin-top:12px;color:var(--txt2)}
+  .bar{height:6px;background:var(--bg0);border-radius:3px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--amb));transition:width .2s}
+  .note{border-left:2px solid var(--gold);padding:8px 14px;background:var(--bg2);border-radius:0 8px 8px 0;margin:12px 0;font-size:14px}
   .note.warn{border-color:var(--warn)}.note.bad{border-color:var(--bad)}
   .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
   svg{max-width:100%;height:auto;display:block}
-  .schem{background:#0d1014;border:1px solid var(--line);border-radius:10px;padding:8px;margin:10px 0}
-  footer{margin-top:48px;color:var(--mute);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
-  esp-web-install-button{--esp-tools-button-color:#0b1014;--esp-tools-button-background-color:#4bb9d3;--esp-tools-button-border-radius:8px}
+  .schem{background:var(--bg1);border:1px solid var(--brd2);border-radius:14px;padding:8px;margin:10px 0}
+  footer{margin-top:48px;color:var(--muted);font-size:12px;border-top:1px solid var(--brd);padding-top:16px;line-height:1.7}
+  esp-web-install-button{--esp-tools-button-color:#151310;--esp-tools-button-background-color:#ad9978;--esp-tools-button-border-radius:2px}
   .hide{display:none}
-  .tog{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer;font-size:14px}
-  .tog:has(input:checked){border-color:var(--acc);color:var(--acc)}
+  .tog{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1.5px solid var(--dim);border-radius:9px;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:.16s}
+  .tog:hover{border-color:var(--brdA);color:var(--cream)}
+  .tog:has(input:checked){color:var(--gold);border-color:var(--gold);background:linear-gradient(180deg,rgba(173,153,120,.16),rgba(245,208,92,.08))}
+  .tog input{accent-color:var(--amb)}
   .lnk{display:inline-block;margin-right:8px;white-space:nowrap}
-  .lnk small{color:var(--mute)}
+  .lnk small{color:var(--muted)}
+  details summary{cursor:pointer;color:var(--muted)}
+  .preview-wrap{background:var(--bg1);border:1px solid var(--brd2);border-radius:14px;overflow:hidden;box-shadow:0 22px 50px -34px rgba(0,0,0,.9)}
+  .preview-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd2);font-size:12px;color:var(--muted)}
+  .preview-bar .url{flex:1;background:var(--bg0);border:1px solid var(--brd2);border-radius:6px;padding:6px 10px;font-family:'DM Mono',monospace;color:var(--txt2)}
+  .preview-bar .dots i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--dim);margin-right:5px}
+  iframe.preview{width:100%;height:1180px;border:0;background:#0d0b07;display:block}
 </style>
 <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
 <script src="web/avrgirl-arduino.js"></script>
 </head>
 <body>
+<header class="site-hdr">
+  <a class="wm" href="https://sonor.co.uk" target="_blank" rel="noopener" aria-label="Sonor">
+    <svg viewBox="0 0 93 95" fill="currentColor" aria-hidden="true"><path d="M92.02,38.41v51.4c0,2.63-2.13,4.75-4.75,4.75h-3.34c-2.62,0-4.75-2.12-4.75-4.75v-45.34c0-2.45-1.11-4.77-3.01-6.31l-25.23-20.41c-2.8-2.27-6.76-2.42-9.73-.36l-23.15,16.05.45,1.55c22.38,9.5,40.47,30.05,47.71,53.39.95,3.06-1.32,6.18-4.53,6.18h-5.36c-2.08,0-3.9-1.37-4.54-3.35-6.96-21.83-24.83-38.23-46.17-46.13-1.31-.49-2.31-1.5-2.79-2.75-.2-.51-.31-1.06-.32-1.64l-.12-9.11c-.02-1.58.75-3.06,2.05-3.96L28.74,10.74,42.11,1.45c.16-.11.32-.22.49-.31,2.35-1.4,5.22-1.5,7.64-.34.57.26,1.12.61,1.63,1.03l37.16,30.29c1.89,1.54,2.99,3.85,2.99,6.29Z"/><path d="M34.59,94.55h-5.25c-1.6,0-3.09-.81-3.97-2.15-5.47-8.37-11.98-15.35-20.72-20.32-1.5-.85-2.45-2.42-2.45-4.15v-5.58c0-3.52,3.68-5.79,6.85-4.26,12.79,6.15,23.95,16.91,29.85,29.73,1.45,3.14-.86,6.73-4.32,6.73h0Z"/><path d="M4.26,83.39c7.65-1.71,9.39,9.06,4.03,10.83-8.9,2.94-11.25-9.22-4.03-10.83Z"/></svg>
+    <b>Sonor</b>
+  </a>
+  <span class="hdr-tag">Art-Net Node</span>
+  <span class="ver">FIRMWARE <span id="fw">v0.3.1</span></span>
+</header>
+<nav class="tabs" role="tablist">
+  <button class="tab on" data-view="build" role="tab"><span class="pn">1</span> Build &amp; flash</button>
+  <button class="tab" data-view="preview" role="tab"><span class="pn">2</span> Node web page preview</button>
+  <button class="tab" data-view="about" role="tab"><span class="pn">3</span> Limits &amp; notes</button>
+</nav>
+
 <div class="wrap">
-<header>
+<section class="view on" id="view-build">
+<header class="lead">
   <div class="eyebrow">SONOR · Studio</div>
   <h1>Art-Net Node</h1>
-  <div class="sub">Ethernet or WiFi → DMX512, in the shape of an Enttec ODE. Pick a board, buy the bits, flash it from this page, wire a MAX485 to an XLR, set the universe on the node's own web page. Firmware <span id="fw">v0.3.0</span>.</div>
+  <div class="sub">Ethernet or WiFi → DMX512, in the shape of an Enttec ODE. Pick a board, buy the bits, flash it from this page, wire a MAX485 to an XLR, set the universe on the node's own web page.</div>
 </header>
 
 <h2><span class="n">1</span> Pick your board</h2>
@@ -102,7 +150,17 @@
 <p>In QLC+ (free, Mac/Win): Inputs/Outputs → Universe 1 → tick the Art-Net <b>output</b> on your laptop's interface → set the target to the node's IP (or leave broadcast). Add a dimmer fixture, push the fader. The node's status page counts <b>frames received</b> — if that's climbing, packets are arriving and any problem is on the DMX side (A/B swapped is the usual one). If it isn't climbing, it's universe or subnet: the node and the console must be on the same subnet, and Port-Address 0/0/0 is "Universe 1" in QLC+'s <i>and</i> Universe 0 in MA.</p>
 <p>Any Art-Net tool's node discovery (QLC+ Art-Net plugin config, Enttec DMX-Workshop, Resolume, MA) should list it as <b>SONOR Node</b> with one output port.</p>
 
-<h2>Limits &amp; notes</h2>
+</section>
+
+<section class="view" id="view-preview">
+<header class="lead"><div class="eyebrow">What the node serves</div><h1>Node web page</h1><div class="sub">This is the page the node itself hosts at <code>http://&lt;node-ip&gt;/</code> (ESP builds; the Nano builds serve a lighter version of the same). Sample values below — pick a board on the first tab and the wiring block follows it.</div></header>
+<div class="preview-wrap"><div class="preview-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="pvUrl">http://2.0.0.10/</span></div><iframe class="preview" id="pv" title="Node web page preview"></iframe></div>
+<p class="note">Universe changes apply live; IP / WiFi changes restart the node. Factory reset is Net 127 / Sub-Net 15 / Universe 15 + Save.</p>
+</section>
+
+<section class="view" id="view-about">
+<header class="lead"><div class="eyebrow">Capabilities</div><h1>Limits &amp; notes</h1></header>
+<h2>By board</h2>
 <table>
   <tr><th>Board</th><th>Universes</th><th>Link</th><th>Notes</th></tr>
   <tr><td>Nano + ENC28J60</td><td>1</td><td>Ethernet</td><td>Flash 93% full, 650 bytes of RAM headroom. It's at its ceiling — no further features.</td></tr>
@@ -112,6 +170,7 @@
   <tr><td>ESP8266</td><td>1</td><td>WiFi</td><td>Only a TX-only second UART (D4), so no RDM. Fine as a WiFi node.</td></tr>
 </table>
 <p>All boards: DMX refresh ~40 Hz continuous, last look held on loss of source. Art-Net 3/4 packets accepted (ArtPoll, ArtDmx), broadcast or unicast. WiFi is fine for a fixed install; for a show-critical line use a wired board.</p>
+</section>
 
 <footer>SONOR Ltd · STUDIO side-project · <a href="https://github.com/sonorltd/sonor-artnet-node">github.com/sonorltd/sonor-artnet-node</a> · Bundled: EthernetENC (Juraj Andrassy, patched), Arduino Ethernet, DMXSerial (Matthias Hertel), avrgirl-arduino (Suz Hinton), ESP Web Tools (ESPHome)</footer>
 </div>
@@ -180,8 +239,8 @@ const BOARDS = [
 ];
 
 const NET = {  // wire colours by net
-  '5V':'#e5484d', '3V3':'#f0883e', 'GND':'#9aa4b2', 'DI':'#4bb9d3', 'DE':'#46c37b', 'LED':'#f5d05c',
-  'A':'#f5d05c', 'B':'#e6e8eb', 'SCK':'#c084fc', 'MISO':'#f472b6', 'MOSI':'#a78bfa', 'CS':'#60a5fa', 'INT':'#a3e635',
+  '5V':'#e5484d', '3V3':'#f0883e', 'GND':'#9aa4b2', 'DI':'#6cb6e6', 'DE':'#46c37b', 'LED':'#f5d05c',
+  'A':'#f5d05c', 'B':'#F4F1EC', 'SCK':'#c084fc', 'MISO':'#f472b6', 'MOSI':'#a78bfa', 'CS':'#60a5fa', 'INT':'#a3e635',
   'U_TX':'#7fb4f0', 'U_RX':'#7fb4f0', 'U_BOOT':'#9aa4b2'
 };
 
@@ -253,6 +312,7 @@ function select(id) {
   try { localStorage.setItem('sonor-artnet-board', id); } catch (e) {}
   history.replaceState(null, '', '#' + id);
   renderFlash(b); renderParts(b); renderSchematic(b); renderPins(b); renderSetup(b);
+  if (document.getElementById('view-preview').classList.contains('on')) renderPreview();
   document.getElementById('wireNotes').innerHTML = b.wireNotes;
   document.getElementById('ideNotes').innerHTML = `<p>${b.ide}</p><p>Or grab the whole thing: <a href="https://github.com/sonorltd/sonor-artnet-node/archive/refs/heads/main.zip">sketch + bundled libraries (zip)</a>.</p>`;
 }
@@ -319,8 +379,8 @@ async function flashAvr(b) {
 function renderSchematic(b) {
   const W = 880, PIN = 26;
   const S = [];
-  const txt = (x, y, s, o = {}) => S.push(`<text x="${x}" y="${y}" fill="${o.fill || '#e6e8eb'}" font-size="${o.size || 12}" font-family="ui-monospace,Menlo,Consolas,monospace" text-anchor="${o.anchor || 'start'}" font-weight="${o.w || 400}" dominant-baseline="middle">${s}</text>`);
-  const box = (x, y, w, h, title) => { S.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#161b21" stroke="#3a4450" stroke-width="1.5"/>`); txt(x + w / 2, y + 16, title, {anchor:'middle', w:700, size:12.5}); };
+  const txt = (x, y, s, o = {}) => S.push(`<text x="${x}" y="${y}" fill="${o.fill || '#F4F1EC'}" font-size="${o.size || 12}" font-family="ui-monospace,Menlo,Consolas,monospace" text-anchor="${o.anchor || 'start'}" font-weight="${o.w || 400}" dominant-baseline="middle">${s}</text>`);
+  const box = (x, y, w, h, title) => { S.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#171410" stroke="rgba(173,153,120,.35)" stroke-width="1.5"/>`); txt(x + w / 2, y + 16, title, {anchor:'middle', w:700, size:12.5}); };
   const wire = (pts, net) => S.push(`<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${NET[net] || '#fff'}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`);
   const dot = (x, y, net) => S.push(`<circle cx="${x}" cy="${y}" r="3" fill="${NET[net] || '#fff'}"/>`);
 
@@ -331,7 +391,7 @@ function renderSchematic(b) {
   b.mcu.pins.forEach(([label, net], i) => {
     const y = my + 36 + i * PIN + PIN / 2;
     txt(mx + mw - 10, y, label, {anchor:'end', fill:'#c9d1d9'});
-    S.push(`<line x1="${mx + mw}" y1="${y}" x2="${mx + mw + 14}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+    S.push(`<line x1="${mx + mw}" y1="${y}" x2="${mx + mw + 14}" y2="${y}" stroke="#5a5145" stroke-width="2"/>`);
     mcuPin[net] = [mx + mw + 14, y];
   });
 
@@ -342,16 +402,16 @@ function renderSchematic(b) {
   const maxPin = {};
   maxPins.forEach(([label, net], i) => {
     const y = dy + 36 + i * PIN + PIN / 2;
-    txt(dx + 10, y, label, {fill:'#c9d1d9'});
-    S.push(`<line x1="${dx - 14}" y1="${y}" x2="${dx}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+    txt(dx + 10, y, label, {fill:'#e6e0d6'});
+    S.push(`<line x1="${dx - 14}" y1="${y}" x2="${dx}" y2="${y}" stroke="#5a5145" stroke-width="2"/>`);
     if (net) maxPin[net] = [dx - 14, y];
   });
   const ay = dy + 36 + PIN / 2 + PIN * 1, by = ay + PIN * 2;   // A, B on the right side
   txt(dx + dw - 10, ay, 'A', {anchor:'end', fill:'#c9d1d9'}); txt(dx + dw - 10, by, 'B', {anchor:'end', fill:'#c9d1d9'});
-  S.push(`<line x1="${dx + dw}" y1="${ay}" x2="${dx + dw + 14}" y2="${ay}" stroke="#6b7684" stroke-width="2"/><line x1="${dx + dw}" y1="${by}" x2="${dx + dw + 14}" y2="${by}" stroke="#6b7684" stroke-width="2"/>`);
+  S.push(`<line x1="${dx + dw}" y1="${ay}" x2="${dx + dw + 14}" y2="${ay}" stroke="#5a5145" stroke-width="2"/><line x1="${dx + dw}" y1="${by}" x2="${dx + dw + 14}" y2="${by}" stroke="#5a5145" stroke-width="2"/>`);
   // DE–RE link
   wire([maxPin.DE, [maxPin.DE[0] - 10, maxPin.DE[1]], [maxPin.DE[0] - 10, maxPin.DE2[1]], maxPin.DE2], 'DE');
-  txt(dx + 46, maxPin.DE[1] + 13, 'tie DE + RE', {fill:'#6b7684', size:10});
+  txt(dx + 46, maxPin.DE[1] + 13, 'tie DE + RE', {fill:'#6a6156', size:10});
 
   // XLR female (right) — drawn as a connector block, pins 3 / 2 / 1 top to bottom
   const xx = 760, xw = 100, xpins = [['3  Data +','A'],['2  Data −','B'],['1  GND','GND']];
@@ -360,15 +420,15 @@ function renderSchematic(b) {
   const xp = {};
   xpins.forEach(([label, net], i) => {
     const y = xy + 36 + i * PIN + PIN / 2;
-    txt(xx + 10, y, label, {fill:'#c9d1d9'});
-    S.push(`<line x1="${xx - 14}" y1="${y}" x2="${xx}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+    txt(xx + 10, y, label, {fill:'#e6e0d6'});
+    S.push(`<line x1="${xx - 14}" y1="${y}" x2="${xx}" y2="${y}" stroke="#5a5145" stroke-width="2"/>`);
     xp[net] = [xx - 14, y];
   });
   // little face icon under the block so the pin positions on a real socket are obvious
   const fcx = xx + xw / 2, fcy = xy + xh + 30;
-  S.push(`<circle cx="${fcx}" cy="${fcy}" r="20" fill="#161b21" stroke="#3a4450" stroke-width="1.2"/>`);
-  [[fcx - 10, fcy - 6, '2'], [fcx + 10, fcy - 6, '3'], [fcx, fcy + 10, '1']].forEach(([x, y, n]) => { S.push(`<circle cx="${x}" cy="${y}" r="4" fill="#0d1014" stroke="#9aa4b2" stroke-width="1"/>`); txt(x, y + 0.5, n, {anchor:'middle', size:7, fill:'#c9d1d9'}); });
-  txt(fcx, fcy + 34, 'DMX out · face view', {anchor:'middle', fill:'#6b7684', size:10});
+  S.push(`<circle cx="${fcx}" cy="${fcy}" r="20" fill="#171410" stroke="rgba(173,153,120,.35)" stroke-width="1.2"/>`);
+  [[fcx - 10, fcy - 6, '2'], [fcx + 10, fcy - 6, '3'], [fcx, fcy + 10, '1']].forEach(([x, y, n]) => { S.push(`<circle cx="${x}" cy="${y}" r="4" fill="#0d0b07" stroke="#8f8574" stroke-width="1"/>`); txt(x, y + 0.5, n, {anchor:'middle', size:7, fill:'#c9d1d9'}); });
+  txt(fcx, fcy + 34, 'DMX out · face view', {anchor:'middle', fill:'#6a6156', size:10});
   // A → pin 3, B → pin 2 (two short bus columns between the MAX485 and the XLR)
   const xb = dx + dw + 40;
   wire([[dx + dw + 14, ay], [xb, ay], [xb, xp.A[1]], xp.A], 'A'); dot(xb, ay, 'A'); dot(xb, xp.A[1], 'A');
@@ -390,9 +450,9 @@ function renderSchematic(b) {
   if (b.led && mcuPin.LED) {
     const [lx, ly] = mcuPin.LED, x1 = lx + 16;
     wire([[lx, ly], [x1, ly], [x1, ly + 22]], 'LED');
-    S.push(`<rect x="${x1 - 8}" y="${ly + 22}" width="16" height="30" fill="#161b21" stroke="#f5d05c" stroke-width="1.6"/>`); txt(x1 + 14, ly + 37, '330 Ω', {fill:'#8a94a0', size:10});
+    S.push(`<rect x="${x1 - 8}" y="${ly + 22}" width="16" height="30" fill="#171410" stroke="#f5d05c" stroke-width="1.6"/>`); txt(x1 + 14, ly + 37, '330 Ω', {fill:'#8f8574', size:10});
     wire([[x1, ly + 52], [x1, ly + 64]], 'LED');
-    S.push(`<polygon points="${x1 - 8},${ly + 64} ${x1 + 8},${ly + 64} ${x1},${ly + 78}" fill="#161b21" stroke="#f5d05c" stroke-width="1.6"/><line x1="${x1 - 8}" y1="${ly + 78}" x2="${x1 + 8}" y2="${ly + 78}" stroke="#f5d05c" stroke-width="1.6"/>`); txt(x1 + 14, ly + 71, 'LED', {fill:'#8a94a0', size:10});
+    S.push(`<polygon points="${x1 - 8},${ly + 64} ${x1 + 8},${ly + 64} ${x1},${ly + 78}" fill="#171410" stroke="#f5d05c" stroke-width="1.6"/><line x1="${x1 - 8}" y1="${ly + 78}" x2="${x1 + 8}" y2="${ly + 78}" stroke="#f5d05c" stroke-width="1.6"/>`); txt(x1 + 14, ly + 71, 'LED', {fill:'#8f8574', size:10});
     wire([[x1, ly + 78], [x1, gy], [bus.GND, gy], [bus.GND, maxPin.GND[1]]], 'GND'); dot(x1, gy, 'GND');
   }
 
@@ -401,7 +461,7 @@ function renderSchematic(b) {
     const [bx0, by0] = mcuPin.U_BOOT;
     S.push(`<polyline points="${bx0},${by0} ${bx0 + 24},${by0} ${bx0 + 24},${by0 + 18}" fill="none" stroke="#9aa4b2" stroke-width="2" stroke-dasharray="4 3"/>`);
     [[10, 18], [6, 22], [2, 26]].forEach(([hw, yo]) => S.push(`<line x1="${bx0 + 24 - hw}" y1="${by0 + yo}" x2="${bx0 + 24 + hw}" y2="${by0 + yo}" stroke="#9aa4b2" stroke-width="2"/>`));
-    txt(bx0 + 40, by0 + 8, 'to GND while powering up = download mode', {fill:'#8a94a0', size:10});
+    txt(bx0 + 40, by0 + 8, 'to GND while powering up = download mode', {fill:'#8f8574', size:10});
   }
 
   // extra modules (W5500, USB-serial) below the MAX485
@@ -415,8 +475,8 @@ function renderSchematic(b) {
     nets.forEach((n, i) => b2[n] = bx + i * 14);
     mod.pins.forEach(([label, net], i) => {
       const y = ey + 36 + i * PIN + PIN / 2;
-      txt(dx + 10, y, label, {fill:'#c9d1d9'});
-      S.push(`<line x1="${dx - 14}" y1="${y}" x2="${dx}" y2="${y}" stroke="#6b7684" stroke-width="2"/>`);
+      txt(dx + 10, y, label, {fill:'#e6e0d6'});
+      S.push(`<line x1="${dx - 14}" y1="${y}" x2="${dx}" y2="${y}" stroke="#5a5145" stroke-width="2"/>`);
       const s = mcuPin[net]; if (!s) return;
       const col = (net === 'GND' || net === '5V') ? bus[net] : b2[net];
       wire([s, [col, s[1]], [col, y], [dx - 14, y]], net); dot(col, s[1], net); dot(col, y, net);
@@ -426,7 +486,7 @@ function renderSchematic(b) {
   const H = Math.max(ey, gy + 40, my + mh + 100, xy + xh + 90);
   // legend
   const legendNets = [...new Set([b.power === '3V3' ? '3V3' : '5V','GND','DI','DE', ...(b.led ? ['LED'] : []), 'A','B', ...b.modules.flatMap(m => m.pins.map(p => p[1]))])].filter(n => NET[n]);
-  let lx = 30; legendNets.forEach(n => { S.push(`<line x1="${lx}" y1="${H - 14}" x2="${lx + 18}" y2="${H - 14}" stroke="${NET[n]}" stroke-width="3"/>`); txt(lx + 24, H - 14, n.replace('U_', 'USB-'), {fill:'#8a94a0', size:10}); lx += 24 + n.length * 7 + 22; });
+  let lx = 30; legendNets.forEach(n => { S.push(`<line x1="${lx}" y1="${H - 14}" x2="${lx + 18}" y2="${H - 14}" stroke="${NET[n]}" stroke-width="3"/>`); txt(lx + 24, H - 14, n.replace('U_', 'USB-'), {fill:'#8f8574', size:10}); lx += 24 + n.length * 7 + 22; });
   document.getElementById('schem').innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring schematic for ${b.name}">${S.join('')}</svg>`;
 }
 
@@ -443,6 +503,29 @@ function renderSetup(b) {
   const wifi = `<p><b>WiFi first run:</b> with no credentials saved the node opens its own hotspot <code>SONOR-Node-xxxx</code> (open, no password). Join it from a phone, browse to <code>http://192.168.4.1/</code>, enter your WiFi name + password, Save. It restarts onto your network; find it as <code>sonor-node-xxxx.local</code>, via the router's lease table, or Art-Net discovery.</p>`;
   const page = `<p><b>Then, on the node's page</b> <code>http://&lt;node-ip&gt;/</code>: set <b>Net / Sub-Net / Universe</b> (0/0/0 = "Universe 1" on most consoles), choose <b>DHCP or static IP</b>, Save. Wiring and flashing notes are on the page too, so nobody needs this site on site. Factory reset = Net 127 / Sub-Net 15 / Universe 15 + Save.</p>`;
   document.getElementById('setup').innerHTML = (b.setup === 'eth' ? eth : b.setup === 'wifi' ? wifi : eth + `<p><b>WiFi fallback:</b> enter WiFi credentials on the node's page and it'll use them whenever the cable is out.</p>`) + page;
+}
+
+// ─────────────────────────── tabs + node page preview ───────────────────────────
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + t.dataset.view));
+  if (t.dataset.view === 'preview') renderPreview();
+  window.scrollTo({ top: 0 });
+});
+let nodePageTpl = null;
+async function renderPreview() {
+  const b = BOARDS.find(x => x.id === (location.hash.slice(1) || BOARDS[0].id)) || BOARDS[0];
+  if (!nodePageTpl) { try { nodePageTpl = await (await fetch('web/node-page.html', {cache:'no-store'})).text(); } catch (e) { nodePageTpl = '<p style="color:#ccc;font-family:sans-serif;padding:20px">Preview needs the page served over http(s).</p>'; } }
+  const wifi = b.tags.includes('wifi'), eth = b.tags.includes('eth');
+  const wiring = (b.mcu.pins.map(([p, net]) => `${p.padEnd(16)} -> ${({ '5V':'MAX485 VCC', '3V3': b.max3485 ? 'MAX3485 VCC' : 'W5500 VCC', 'GND':'GND (+ XLR pin 1)', 'DI':'MAX485 DI', 'DE':'MAX485 DE + RE', 'LED':'330R -> LED -> GND', 'SCK':'W5500 SCK', 'MISO':'W5500 MISO', 'MOSI':'W5500 MOSI', 'CS':'W5500 CS', 'INT':'W5500 INT', 'U_TX':'USB-serial TX', 'U_RX':'USB-serial RX', 'U_BOOT':'GND at power-up = download' })[net] || net}`).join('\n') + '\nMAX485 A -> XLR pin 3 (Data+),  B -> XLR pin 2 (Data-)');
+  const v = { FW: document.getElementById('fw').textContent.replace(/^v/, ''), BOARD: b.name, MSG: '', NET: 0, SUB: 0, UNI: 0, SSID: wifi ? 'Sonor-Studio' : '', PASS: wifi ? '••••••••' : '',
+    WIFINOTE: eth && wifi ? 'Only used if the Ethernet cable is unplugged. Leave blank to disable WiFi fallback.' : wifi ? 'Leave blank and the node opens its own hotspot (SONOR-Node-xxxx, 192.168.4.1) so you can set it up.' : 'This board has no WiFi — leave blank.',
+    D1: 'selected', D0: '', IP: '2.0.0.10', MASK: '255.0.0.0', GW: '2.0.0.1', LINK: eth ? 'Ethernet' : 'WiFi', CURIP: eth ? '192.168.1.42' : '192.168.1.87', HOW: 'DHCP', HOST: 'SONOR-Node-4F52', MAC: '02:53:4F:4E:4F:52', FRAMES: 18422, WIRING: wiring };
+  let html = nodePageTpl.replace(/%([A-Z0-9]+)%/g, (m, k) => (k in v ? v[k] : m));
+  if (!wifi) html = html.replace(/<div class=panel><div class=ptt>WiFi<\/div>[\s\S]*?<\/div><\/div>/, '');
+  html = html.replace('<form action=/save method=post>', '<form onsubmit="return false">');
+  document.getElementById('pv').srcdoc = html;
+  document.getElementById('pvUrl').textContent = eth ? 'http://192.168.1.42/' : 'http://192.168.1.87/';
 }
 
 // initial selection: hash → saved → first

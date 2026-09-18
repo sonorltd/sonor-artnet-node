@@ -41,10 +41,11 @@ On the AVR boards a network change needs a power-cycle; the ESP boards restart t
 ## Repo layout
 
 ```
-index.html                  Pages site: board picker, browser flashing, SVG wiring schematics, setup
+index.html                  Pages site (Sonor lighting-design theme): board picker, shopping list, browser flashing, SVG schematics, node-page preview tab
+web/node-page.html          the on-node web page template → build.sh generates sonor-artnet-node/esp_page.h; also the preview tab
 firmware/<board>/           prebuilt binaries + esp-web-tools manifests (output of build.sh)
 web/avrgirl-arduino.js      browser-side AVR flasher (Web Serial, STK500v1)
-build.sh                    compiles all 6 variants with arduino-cli into firmware/
+build.sh                    compiles all 8 variants with arduino-cli into firmware/
 sonor-artnet-node/          the Arduino sketch
   sonor-artnet-node.ino       thin entry: picks avr_node.h or esp_node.h
   config.h                    board selection, factory defaults, pin maps

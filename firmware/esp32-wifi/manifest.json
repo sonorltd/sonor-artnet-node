@@ -1,6 +1,6 @@
 {
   "name": "SONOR Art-Net Node (esp32-wifi)",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "new_install_prompt_erase": true,
   "builds": [
     { "chipFamily": "ESP32",
