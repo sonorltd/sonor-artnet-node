@@ -8,7 +8,7 @@ body{margin:0;background:radial-gradient(900px 420px at 50% -140px,rgba(245,208,
 .hdr b{font-weight:800;font-size:14px;letter-spacing:.22em;text-transform:uppercase}
 .hdr .tag{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(244,241,236,.5);font-weight:600;padding-left:14px;border-left:1px solid rgba(255,255,255,.14)}
 .hdr .ver{margin-left:auto;font-size:10px;letter-spacing:.16em;color:rgba(200,180,142,.55);font-weight:700}
-.c{max-width:600px;margin:0 auto;padding:26px 20px 48px}
+.c{max-width:780px;margin:0 auto;padding:26px 20px 48px}
 h1{font-weight:800;font-size:28px;letter-spacing:-.02em;line-height:1.05;margin:0 0 6px;background:linear-gradient(90deg,var(--cream),var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px}
 .panel{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--bg2);border:1px solid var(--brd2);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:0 22px 50px -34px rgba(0,0,0,.9)}
@@ -25,6 +25,7 @@ button.g{background:transparent;color:var(--gold2);border-color:rgba(173,153,120
 pre{background:var(--bg3);border:1px solid var(--brd2);border-radius:8px;padding:12px 14px;font:12px/1.5 'DM Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--cream);overflow:auto;margin:0}
 .ok{background:rgba(127,201,138,.1);border:1px solid rgba(90,173,96,.35);color:#7fc98a;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13.5px}
 .bad{background:rgba(224,160,90,.1);border:1px solid rgba(212,136,58,.35);color:#e0a05a;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13.5px}
+svg{max-width:100%;height:auto;display:block}.schem{background:#0d0b07;border:1px solid var(--brd2);border-radius:10px;padding:6px;margin-bottom:10px}
 .foot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:18px}
 .foot a{color:var(--gold2);text-decoration:none;border-bottom:1px solid rgba(173,153,120,.35)}
 </style></head><body>
@@ -51,10 +52,13 @@ MAC       : %MAC%
 Art-Net   : port 6454, Net %NET% / Sub-Net %SUB% / Universe %UNI%
 Frames    : %FRAMES% received
 DMX out   : 512 ch continuous, ~40 Hz</pre></div>
-<div class=panel><div class=ptt>Wiring</div><pre>%WIRING%</pre></div>
+<div class=panel><div class=ptt>Wiring</div><div class=schem id=schem></div><pre>%WIRING%</pre></div>
 <div class=panel><div class=ptt>Flashing</div><pre>Browser (no software) or Arduino IDE:
 https://sonorltd.github.io/sonor-artnet-node/
 Factory reset: set Net=127 Sub=15 Univ=15 and Save.</pre></div>
 <div class=foot>Answers ArtPoll as "SONOR Node". Accepts ArtDmx by broadcast or unicast. Holds the last look if the source stops.
 Source: <a href="https://github.com/sonorltd/sonor-artnet-node">github.com/sonorltd/sonor-artnet-node</a></div>
-</div></body></html>
+</div>
+<script>/*SCHEMATIC_JS*/</script>
+<script>try{document.getElementById('schem').innerHTML=drawSchematic(%WIRESPEC%);}catch(e){}</script>
+</body></html>

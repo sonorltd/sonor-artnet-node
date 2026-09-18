@@ -216,24 +216,31 @@ static void handleArtnet() {
 
 #if SONOR_BOARD == BOARD_ESP32_WIFI
   #define BOARD_NAME "ESP32 DevKit (WiFi)"
-  #define WIRING "ESP32            MAX485 module        XLR (DMX out)\n5V/VIN --------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nGPIO17 (TX2) --> DI\nGPIO4 ---------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nGPIO2 = on-board LED (activity)"
+  #define WIRESPEC "{\"name\":\"ESP32 DevKit\",\"power\":\"5V\",\"mcu\":{\"title\":\"ESP32 DevKit\",\"pins\":[[\"VIN / 5V\",\"5V\"],[\"GND\",\"GND\"],[\"GPIO17 (TX2)\",\"DI\"],[\"GPIO4\",\"DE\"]]},\"modules\":[]}"
+  #define WIRING "VIN/5V -> MAX485 VCC   GND -> GND + XLR pin 1\nGPIO17 (TX2) -> DI    GPIO4 -> DE+RE (tied)\nA -> XLR pin 3 (Data+)   B -> XLR pin 2 (Data-)\nGPIO2 = on-board LED (activity)"
 #elif SONOR_BOARD == BOARD_ESP32_W5500
   #define BOARD_NAME "ESP32 + W5500 (Ethernet, WiFi fallback)"
-  #define WIRING "ESP32            MAX485 module        XLR (DMX out)\n5V/VIN --------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nGPIO17 (TX2) --> DI\nGPIO4 ---------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\n\nESP32            W5500 module\n3V3 -----------> VCC   GND -> GND\nGPIO18 --------> SCK\nGPIO19 --------> MISO\nGPIO23 --------> MOSI\nGPIO5 ---------> CS\nGPIO35 --------> INT\nGPIO2 = on-board LED (activity)"
+  #define WIRESPEC "{\"name\":\"ESP32 + W5500\",\"power\":\"5V\",\"mcu\":{\"title\":\"ESP32 DevKit\",\"pins\":[[\"VIN / 5V\",\"5V\"],[\"GND\",\"GND\"],[\"GPIO17 (TX2)\",\"DI\"],[\"GPIO4\",\"DE\"],[\"3V3\",\"3V3\"],[\"GPIO18\",\"SCK\"],[\"GPIO19\",\"MISO\"],[\"GPIO23\",\"MOSI\"],[\"GPIO5\",\"CS\"],[\"GPIO35\",\"INT\"]]},\"modules\":[{\"title\":\"W5500 module\",\"pins\":[[\"VCC\",\"3V3\"],[\"GND\",\"GND\"],[\"SCK\",\"SCK\"],[\"MISO\",\"MISO\"],[\"MOSI\",\"MOSI\"],[\"CS\",\"CS\"],[\"INT\",\"INT\"]]}]}"
+  #define WIRING "VIN/5V -> MAX485 VCC   GND -> GND + XLR pin 1\nGPIO17 (TX2) -> DI    GPIO4 -> DE+RE (tied)\nA -> XLR pin 3 (Data+)   B -> XLR pin 2 (Data-)\nW5500: 3V3 VCC, SCK 18, MISO 19, MOSI 23, CS 5, INT 35"
 #elif SONOR_BOARD == BOARD_WT32_ETH01
   #define BOARD_NAME "WT32-ETH01 (Ethernet, WiFi fallback)"
-  #define WIRING "WT32-ETH01       MAX485 module        XLR (DMX out)\n5V ------------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nIO17 (TXD2) ---> DI\nIO4 -----------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nRJ45 on board. Power the module with 5V (not 3.3V)."
+  #define WIRESPEC "{\"name\":\"WT32-ETH01\",\"power\":\"5V\",\"mcu\":{\"title\":\"WT32-ETH01\",\"pins\":[[\"5V\",\"5V\"],[\"GND\",\"GND\"],[\"IO17 (TXD2)\",\"DI\"],[\"IO4\",\"DE\"],[\"RX0\",\"U_TX\"],[\"TX0\",\"U_RX\"],[\"IO0\",\"U_BOOT\"]]},\"modules\":[{\"title\":\"USB-serial adapter (flashing only)\",\"pins\":[[\"TX\",\"U_TX\"],[\"RX\",\"U_RX\"],[\"GND\",\"GND\"],[\"5V\",\"5V\"]]}]}"
+  #define WIRING "5V -> MAX485 VCC   GND -> GND + XLR pin 1\nIO17 (TXD2) -> DI    IO4 -> DE+RE (tied)\nA -> XLR pin 3 (Data+)   B -> XLR pin 2 (Data-)\nFlash: USB-serial TX->RX0 RX->TX0, IO0 to GND at power-up"
 #elif SONOR_BOARD == BOARD_OLIMEX_POE
   #define BOARD_NAME "Olimex ESP32-POE (PoE Ethernet, WiFi fallback)"
-  #define WIRING "ESP32-POE        MAX485 module        XLR (DMX out)\n5V (EXT) ------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nGPIO33 --------> DI\nGPIO32 --------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nPowered by PoE (802.3af) from the switch - no PSU. USB for flashing."
+  #define WIRESPEC "{\"name\":\"Olimex ESP32-POE\",\"power\":\"3V3\",\"max3485\":true,\"mcu\":{\"title\":\"Olimex ESP32-POE\",\"pins\":[[\"3V3 (EXT)\",\"3V3\"],[\"GND\",\"GND\"],[\"GPIO33\",\"DI\"],[\"GPIO32\",\"DE\"]]},\"modules\":[]}"
+  #define WIRING "3V3 -> MAX3485 VCC   GND -> GND + XLR pin 1\nGPIO33 -> DI    GPIO32 -> DE+RE (tied)\nA -> XLR pin 3 (Data+)   B -> XLR pin 2 (Data-)\nPowered by PoE (802.3af). USB for flashing."
 #elif SONOR_BOARD == BOARD_LILYGO_POE
   #define BOARD_NAME "LilyGO T-Internet-POE (PoE Ethernet, WiFi fallback)"
-  #define WIRING "T-Internet-POE   MAX485 module        XLR (DMX out)\n5V ------------> VCC\nGND -----------> GND -------------->  pin 1 (shield)\nGPIO33 --------> DI\nGPIO32 --------> DE + RE (tied)\n                 A   -------------->  pin 3 (Data+)\n                 B   -------------->  pin 2 (Data-)\nPowered by PoE (802.3af) from the switch - no PSU. Flash via the LilyGO USB downloader board."
+  #define WIRESPEC "{\"name\":\"LilyGO T-Internet-POE\",\"power\":\"3V3\",\"max3485\":true,\"mcu\":{\"title\":\"T-Internet-POE\",\"pins\":[[\"3V3\",\"3V3\"],[\"GND\",\"GND\"],[\"GPIO33\",\"DI\"],[\"GPIO32\",\"DE\"]]},\"modules\":[]}"
+  #define WIRING "3V3 -> MAX3485 VCC   GND -> GND + XLR pin 1\nGPIO33 -> DI    GPIO32 -> DE+RE (tied)\nA -> XLR pin 3 (Data+)   B -> XLR pin 2 (Data-)\nPowered by PoE (802.3af). Flash via the LilyGO downloader."
 #else
   #define BOARD_NAME "ESP8266 (WiFi)"
-  #define WIRING "D1 mini / NodeMCU   MAX485 module     XLR (DMX out)\n5V ---------------> VCC\nGND --------------> GND ----------->  pin 1 (shield)\nD4 (GPIO2, TX1) --> DI\nD1 (GPIO5) -------> DE + RE (tied)\n                    A   ----------->  pin 3 (Data+)\n                    B   ----------->  pin 2 (Data-)\nD4 doubles as the on-board LED - it flickers with DMX, that's normal."
+  #define WIRESPEC "{\"name\":\"D1 mini / NodeMCU\",\"power\":\"5V\",\"mcu\":{\"title\":\"D1 mini / NodeMCU\",\"pins\":[[\"5V\",\"5V\"],[\"GND\",\"GND\"],[\"D4 (GPIO2, TX1)\",\"DI\"],[\"D1 (GPIO5)\",\"DE\"]]},\"modules\":[]}"
+  #define WIRING "5V -> MAX485 VCC   GND -> GND + XLR pin 1\nD4 (GPIO2) -> DI    D1 (GPIO5) -> DE+RE (tied)\nA -> XLR pin 3 (Data+)   B -> XLR pin 2 (Data-)\nD4 doubles as the on-board LED - flickers with DMX, normal."
 #endif
 
+static const char WIRESPEC_P[] PROGMEM = WIRESPEC;
 static String ipStr(const uint8_t* a) { return ipOf(a).toString(); }
 static String macStr() {
   char b[18]; snprintf(b, sizeof(b), "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]); return b;
@@ -249,7 +256,7 @@ static void sendPage(const String& msg) {
   p.replace("%IP%", ipStr(cfg.ip)); p.replace("%MASK%", ipStr(cfg.mask)); p.replace("%GW%", ipStr(cfg.gw));
   p.replace("%LINK%", linkName()); p.replace("%CURIP%", myIP().toString());
   p.replace("%HOW%", apMode ? "hotspot" : (dhcpOk ? "DHCP" : "static")); p.replace("%HOST%", hostname);
-  p.replace("%MAC%", macStr()); p.replace("%FRAMES%", String(frames)); p.replace("%WIRING%", WIRING);
+  p.replace("%MAC%", macStr()); p.replace("%FRAMES%", String(frames)); p.replace("%WIRING%", WIRING); p.replace("%WIRESPEC%", FPSTR(WIRESPEC_P));
   web.send(200, "text/html", p);
 }
 static bool parseIP(const String& s, uint8_t* out) { IPAddress ip; if (!ip.fromString(s)) return false; for (uint8_t i = 0; i < 4; i++) out[i] = ip[i]; return true; }

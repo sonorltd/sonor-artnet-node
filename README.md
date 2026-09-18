@@ -33,7 +33,7 @@ Browse to the node's IP — `http://2.0.0.10/` with no DHCP, whatever the router
 
 * **Art-Net** — Net 0–127, Sub-Net 0–15, Universe 0–15. Port-Address 0/0/0 is "Universe 1" in most consoles, Universe 0 in QLC+ / MA.
 * **Network** — DHCP (with static fallback) or static IP / mask / gateway. WiFi SSID + password on WiFi-capable boards.
-* **Status** — link type, IP, MAC, frames received. Wiring + flashing notes.
+* **Status** — link type, IP, MAC, frames received. **Wiring** as an SVG schematic (ESP builds) plus a pin list, and flashing notes.
 * Factory reset: Net 127 / Sub-Net 15 / Universe 15 + Save (or re-flash).
 
 On the AVR boards a network change needs a power-cycle; the ESP boards restart themselves.
@@ -51,6 +51,7 @@ Rebuild with `control4/build-c4z.sh` (runs the offline harness in `control4/test
 ```
 index.html                  Pages site (Sonor lighting-design theme): board picker, shopping list, browser flashing, SVG schematics, node-page preview tab
 web/node-page.html          the on-node web page template → build.sh generates sonor-artnet-node/esp_page.h; also the preview tab
+web/schematic.js            SVG wiring schematic renderer, shared by the Pages site and the on-node page
 firmware/<board>/           prebuilt binaries + esp-web-tools manifests (output of build.sh)
 web/avrgirl-arduino.js      browser-side AVR flasher (Web Serial, STK500v1)
 build.sh                    compiles all 8 variants with arduino-cli into firmware/
