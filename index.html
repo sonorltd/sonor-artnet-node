@@ -101,6 +101,7 @@
   <button class="tab on" data-view="build" role="tab"><span class="pn">1</span> Build &amp; flash</button>
   <button class="tab" data-view="preview" role="tab"><span class="pn">2</span> Node web page preview</button>
   <button class="tab" data-view="about" role="tab"><span class="pn">3</span> Limits &amp; notes</button>
+  <button class="tab" data-view="c4" role="tab"><span class="pn">4</span> Control4 driver</button>
 </nav>
 
 <div class="wrap">
@@ -170,6 +171,37 @@
   <tr><td>ESP8266</td><td>1</td><td>WiFi</td><td>Only a TX-only second UART (D4), so no RDM. Fine as a WiFi node.</td></tr>
 </table>
 <p>All boards: DMX refresh ~40 Hz continuous, last look held on loss of source. Art-Net 3/4 packets accepted (ArtPoll, ArtDmx), broadcast or unicast. WiFi is fine for a fixed install; for a show-critical line use a wired board.</p>
+</section>
+
+<section class="view" id="view-c4">
+<header class="lead"><div class="eyebrow">Control4 · DriverWorks</div><h1>Control4 driver</h1><div class="sub">Drive the node from Control4 with the OS 3 colour wheel — no eDIDIO or other DMX gateway in between. The controller speaks Art-Net to the node itself; sixteen fixtures show up in Navigator as dimmers with colour and CCT, work in Lighting Scenes, and keep keypad LEDs honest.</div></header>
+
+<div class="panel" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between">
+  <div><b>sonor_artnet_dmx.c4z</b><div style="color:var(--muted);font-size:13px;margin-top:4px">Driver v0.1.0 · OS 3.3+ · one instance per node / universe</div></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="control4/sonor_artnet_dmx.c4z" download>Download .c4z</a><a class="btn ghost" href="https://github.com/sonorltd/sonor-artnet-node/tree/main/control4">Source on GitHub</a></div>
+</div>
+
+<h2>Why this works without a gateway</h2>
+<p>Control4's colour wheel and CCT slider live in the <code>light_v2</code> proxy, not in any particular piece of hardware. Any DriverWorks driver whose light proxies advertise <code>supports_color</code> gets the wheel, so there is nothing to emulate — the driver builds ArtDmx packets in Lua and sends them from the controller to the node over UDP 6454. The eDIDIO route only ever looked mandatory because that was the driver most dealers had seen it on.</p>
+
+<h2><span class="n">1</span> Install</h2>
+<p>Composer Pro → <b>Driver → Add or Update Driver or Agent</b> → pick the <code>.c4z</code>. Then <b>System Design → Add Driver</b>, search <i>Sonor Art-Net</i>, drop it in the room. Set <b>Node IP</b> to the node's address (its own web page shows it; <code>2.0.0.10</code> with no DHCP) and match <b>Art-Net Net / Sub-Net / Universe</b> to the node — the defaults 0 / 0 / 0 are the node's factory settings. <b>Node Status</b> flips to the node's name once it answers ArtPoll.</p>
+
+<h2><span class="n">2</span> Address the fixtures</h2>
+<table>
+  <tr><th>Slot n Type</th><th>Channels</th><th>Colour wheel</th><th>What CCT does</th></tr>
+  <tr><td>Dimmer</td><td>1 · [L]</td><td>—</td><td>—</td></tr>
+  <tr><td>RGB</td><td>3 · [R G B]</td><td>Yes</td><td>Rendered as a blackbody RGB mix</td></tr>
+  <tr><td>RGBW</td><td>4 · [R G B W]</td><td>Yes</td><td>Drives the W LED, tinted with RGB away from <b>White LED Kelvin</b> (set to your strip's white, 3000 K default). Colour picks move the common part of RGB onto W when <b>RGBW White Extraction</b> is On.</td></tr>
+</table>
+<p>Set <b>Slot n Address</b> to the fixture's DMX start channel (0 = unused) and its <b>Type</b>; rename the fixture in Composer and hide the unused ones. Sixteen slots per driver — add the driver again for a second node or universe.</p>
+
+<h2><span class="n">3</span> Programming</h2>
+<p><b>Commands:</b> Set Fixture Level and Set Fixture Colour (fixture 0 = all), Set Channel (raw DMX 1–512, bypasses the slots), Blackout On / Off, Identify Fixture (three white flashes). <b>Actions:</b> Reconnect, Poll Node, Resend DMX Frame, All Fixtures Off. <b>Events:</b> Node Found, Node Lost, Blackout On, Blackout Off.</p>
+
+<h2>How it behaves on the wire</h2>
+<p>DMX fixtures don't fade themselves, so the driver runs a 25 Hz software fade and sends a full 512-channel frame while anything is moving. When nothing is moving it re-sends the frame every <b>Refresh Interval</b> (2 s default) so a node that has been power-cycled picks the look back up — the node itself holds the last look if frames stop. Frames go unicast to Node IP, so it works across VLANs as long as UDP 6454 is routed.</p>
+<p class="note">Works with any Art-Net node, not only this one — an Enttec ODE takes the same packets. The driver has been checked offline against an Art-Net packet / colour-maths harness (<code>control4/test/harness.lua</code>); turn <b>Debug</b> on for the first install and watch the Lua output. Sister driver: the <a href="https://github.com/sonorltd/sonor-pixel-conductor/tree/main/control4">Pixel Conductor driver</a> uses the same light_v2 colour approach for WLED strips.</p>
 </section>
 
 <footer>SONOR Ltd · STUDIO side-project · <a href="https://github.com/sonorltd/sonor-artnet-node">github.com/sonorltd/sonor-artnet-node</a> · Bundled: EthernetENC (Juraj Andrassy, patched), Arduino Ethernet, DMXSerial (Matthias Hertel), avrgirl-arduino (Suz Hinton), ESP Web Tools (ESPHome)</footer>
